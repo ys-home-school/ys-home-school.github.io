@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Japanese Kana Worksheet Generator - Ys School</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<link rel="stylesheet" href="assets/css/site.css?v=5" />
+</head>
+<body class="text-stone-800 min-h-screen flex flex-col">
+
+<header class="site-header sticky top-0 z-10">
+  <nav class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+    <a href="index.html" class="flex items-center gap-2 text-xl font-extrabold text-stone-800">
+      <span class="text-2xl">📝</span> Ys School
+    </a>
+    <div class="flex items-center gap-2 text-sm">
+      <a href="index.html" class="nav-key">Home</a>
+      <a href="math.html" class="nav-key">Math</a>
+      <a href="japanese.html" class="nav-key nav-key-active">Japanese</a>
+    </div>
+  </nav>
+</header>
+
+<!-- Top leaderboard ad slot. Paste an AdSense <script>/<ins> tag inside #ad-slot-top-leaderboard. -->
+<div id="ad-slot-top-leaderboard" class="ad-slot w-full min-h-[90px] max-w-6xl mx-auto mt-4">
+  Ad Slot (728x90 Leaderboard)
+</div>
+
+<main class="max-w-6xl mx-auto w-full px-4 py-6 flex-1">
+  <h1 class="text-2xl font-extrabold mb-1">Japanese Kana Worksheet Generator</h1>
+  <p class="text-sm text-stone-600 mb-4">Configure kana categories and direction below, watch the live preview update, then generate a combined worksheet + answer key PDF.</p>
+
+  <div class="flex flex-col md:grid md:grid-cols-[360px_1fr_300px] gap-6 items-start">
+
+    <!-- CONTROLS -->
+    <div id="controls" class="order-1 card-soft p-4 w-full space-y-4">
+
+      <fieldset class="card-soft card-soft-gold p-3">
+        <legend class="text-sm font-bold px-1">Recent generations</legend>
+        <select id="history-select" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1.5 text-xs bg-white">
+          <option value="">Load a previous generation&hellip;</option>
+        </select>
+        <p class="text-[11px] text-stone-500 mt-1">Keeps your last 5 generated worksheets' settings in this browser.</p>
+      </fieldset>
+
+      <fieldset class="card-soft card-soft-terracotta p-3">
+        <legend class="text-sm font-bold px-1">Quick templates</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" data-template="basic-toggle" class="template-btn btn-key btn-key-sm btn-key-terracotta px-2 py-2">Basic Hiragana &#8646; Katakana</button>
+          <button type="button" data-template="all-toggle" class="template-btn btn-key btn-key-sm btn-key-teal px-2 py-2">All Types Hiragana &#8646; Katakana</button>
+          <button type="button" data-template="all-mixed" class="template-btn btn-key btn-key-sm btn-key-gold px-2 py-2">All Types Mixed (Anti-Cheat)</button>
+          <button type="button" data-template="dhy-toggle" class="template-btn btn-key btn-key-sm btn-key-sage px-2 py-2">Dakuten+Handakuten+Youon &#8646;</button>
+        </div>
+        <p class="text-[11px] text-stone-500 mt-2">Click a template again to cycle: sequential grouped (H&rarr;K, then K&rarr;H), then randomized (H&rarr;K, then K&rarr;H).</p>
+      </fieldset>
+
+      <fieldset class="card-soft p-3">
+        <legend class="text-sm font-bold px-1">Settings file</legend>
+        <div class="flex gap-2">
+          <button id="export-ini-btn" type="button" class="btn-key btn-key-sm btn-key-cream flex-1">Export (.ini)</button>
+          <button id="import-ini-btn" type="button" class="btn-key btn-key-sm btn-key-cream flex-1">Import (.ini)</button>
+          <input id="import-ini-file" type="file" accept=".ini,text/plain" class="hidden" />
+        </div>
+      </fieldset>
+
+      <fieldset class="card-soft card-soft-gold p-3">
+        <legend class="text-sm font-bold px-1">Grid layout &amp; pages</legend>
+        <div class="flex gap-3 text-xs items-center">
+          <label>Rows <input id="cfg-rows" type="number" min="1" max="20" value="10" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+          <label>Cols <input id="cfg-cols" type="number" min="1" max="10" value="5" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+          <label>Copies <input id="cfg-pages" type="number" min="1" max="50" value="1" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+        </div>
+        <p id="sequential-pages-note" class="text-[11px] text-indigo-700 font-medium mt-2 hidden"></p>
+      </fieldset>
+
+      <fieldset class="card-soft card-soft-sage p-3">
+        <legend class="text-sm font-bold px-1">Kana categories</legend>
+        <label class="flex items-center gap-2 text-xs mb-1"><input id="cat-basic" type="checkbox" checked class="h-4 w-4" /> Basic (ア, イ, ウ...)</label>
+        <label class="flex items-center gap-2 text-xs mb-1"><input id="cat-dakuten" type="checkbox" class="h-4 w-4" /> Dakuten (ガ, ギ, グ...)</label>
+        <label class="flex items-center gap-2 text-xs mb-1"><input id="cat-handakuten" type="checkbox" class="h-4 w-4" /> Handakuten (パ, ピ, プ...)</label>
+        <label class="flex items-center gap-2 text-xs mb-1"><input id="cat-youon" type="checkbox" class="h-4 w-4" /> Youon (キャ, ギュ...)</label>
+        <label class="flex items-center gap-2 text-xs mb-2"><input id="cat-small" type="checkbox" class="h-4 w-4" /> Small modifiers (ッ, ャ, ョ...)</label>
+        <label class="block text-xs">Basic kana ratio (%) <input id="cfg-basicratio" type="number" min="0" max="100" value="70" class="w-16 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+      </fieldset>
+
+      <fieldset class="card-soft card-soft-teal p-3">
+        <legend class="text-sm font-bold px-1">Worksheet options</legend>
+        <p class="text-xs font-medium mb-1">Direction</p>
+        <label class="flex items-center gap-2 text-xs mb-1"><input type="radio" name="cfg-direction" value="k2h" checked class="h-4 w-4" /> Katakana &rarr; Hiragana</label>
+        <label class="flex items-center gap-2 text-xs mb-1"><input type="radio" name="cfg-direction" value="h2k" class="h-4 w-4" /> Hiragana &rarr; Katakana</label>
+        <label class="flex items-center gap-2 text-xs mb-2"><input type="radio" name="cfg-direction" value="mixed" class="h-4 w-4" /> Mixed (anti-cheat)</label>
+        <label class="block text-xs mb-3 pl-5">Katakana&rarr;Hiragana ratio (%) <input id="cfg-mixedratio" type="number" min="0" max="100" value="50" class="w-16 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+
+        <p class="text-xs font-medium mb-1">Output order</p>
+        <label class="flex items-center gap-2 text-xs mb-1"><input type="radio" name="cfg-ordered" value="0" checked class="h-4 w-4" /> Randomized (anti-clustered)</label>
+        <label class="flex items-center gap-2 text-xs mb-2"><input type="radio" name="cfg-ordered" value="1" class="h-4 w-4" /> Sequential (a, i, u, e, o...)</label>
+
+        <label id="group-toggle-label" class="flex items-center gap-2 text-xs mb-1 opacity-40">
+          <input id="cfg-group" type="checkbox" class="h-4 w-4" disabled /> Group by row (5 cols, one consonant row per line)
+        </label>
+        <p class="text-[11px] text-stone-500 mb-2 pl-5">Sequential only. Pads short rows (e.g. ya/yu/yo, wa/wo/n) with empty cells so every row lines up in a 5-wide table; forces columns to 5.</p>
+
+        <label class="flex items-center gap-2 text-xs mb-1"><input id="cfg-duplicates" type="checkbox" class="h-4 w-4" /> Allow duplicates</label>
+        <p class="text-[11px] text-stone-500 mb-2 pl-5">If unchecked and grid exceeds pool size, extra spaces stay empty.</p>
+
+        <label class="block text-xs mb-1">Always include (comma-separated, e.g. あ, ピ, ギャ)</label>
+        <input id="cfg-always" type="text" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 text-xs mb-2" placeholder="あ, ピ, ギャ" />
+
+        <label class="flex items-center gap-2 text-xs mb-1"><input id="cfg-footer" type="checkbox" checked class="h-4 w-4" /> Print settings footer on PDF</label>
+        <label class="flex items-center gap-2 text-xs"><input id="cfg-answerkey" type="checkbox" checked class="h-4 w-4" /> Include answer key page(s)</label>
+      </fieldset>
+
+      <button id="generate-btn" class="btn-key btn-key-primary w-full py-3 text-sm">
+        Generate PDF (Worksheet + Answer Key)
+      </button>
+      <p id="generate-status" class="text-xs text-center mt-2 text-stone-500"></p>
+      <p id="autosave-status" class="text-[11px] text-center text-stone-400"></p>
+    </div>
+
+    <!-- SIDEBAR AD -->
+    <!-- Sidebar rectangle ad slot. Paste an AdSense <script>/<ins> tag inside #ad-slot-sidebar. -->
+    <div id="ad-slot-sidebar" class="order-2 md:order-3 ad-slot w-full md:w-[300px] h-[250px] mx-auto">
+      Ad Slot (300x250)
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="preview" class="order-3 md:order-2 card-soft p-4 w-full">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-sm font-semibold text-stone-600">Kana Selection Preview</h2>
+        <div class="flex items-center gap-2 text-xs">
+          <button id="preview-prev" type="button" aria-label="Previous page" class="btn-key btn-key-sm btn-key-cream">&larr;</button>
+          <span id="preview-pager-label" class="text-stone-500 tabular-nums">Page 1 of 1</span>
+          <button id="preview-next" type="button" aria-label="Next page" class="btn-key btn-key-sm btn-key-cream">&rarr;</button>
+        </div>
+      </div>
+      <p class="text-[11px] text-stone-400 mb-2">This is a sample of which kana your current settings would select, and how many fit per page, so you can check the mix before printing &mdash; it is not a mockup of the page design. The actual PDF has no colors or rounded corners: every box is a plain black square on white paper.</p>
+      <div class="overflow-x-auto">
+        <div id="preview-grid" class="grid gap-2 jp-font" style="min-width:480px"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="border-t-2 border-stone-800 bg-[#fffaf1] mt-8">
+  <div class="max-w-6xl mx-auto px-4 py-6 text-center text-xs text-stone-500">
+    Ys School worksheet generators. PDFs are generated entirely client-side in your browser.
+  </div>
+</footer>
+
+<script src="js/pdf-common.js"></script>
+<script src="js/japanese-generator.js"></script>
+<script src="js/japanese-ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Work-in-progress data pipeline (separate, unfinished feature) - not part of the published site yet.
+/data/
+/data-pipeline/
+
+# Sample PDFs generated during development - not source, don't need to be tracked.
+/output sample/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db

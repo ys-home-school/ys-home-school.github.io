@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Worksheet Generator - Ys School</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<link rel="stylesheet" href="assets/css/site.css?v=5" />
+</head>
+<body class="text-stone-800 min-h-screen flex flex-col">
+
+<header class="site-header sticky top-0 z-10">
+  <nav class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+    <a href="index.html" class="flex items-center gap-2 text-xl font-extrabold text-stone-800">
+      <span class="text-2xl">📝</span> Ys School
+    </a>
+    <div class="flex items-center gap-2 text-sm">
+      <a href="index.html" class="nav-key">Home</a>
+      <a href="math.html" class="nav-key nav-key-active">Math</a>
+      <a href="japanese.html" class="nav-key">Japanese</a>
+    </div>
+  </nav>
+</header>
+
+<!-- Top leaderboard ad slot. Paste an AdSense <script>/<ins> tag inside #ad-slot-top-leaderboard. -->
+<div id="ad-slot-top-leaderboard" class="ad-slot w-full min-h-[90px] max-w-6xl mx-auto mt-4">
+  Ad Slot (728x90 Leaderboard)
+</div>
+
+<main class="max-w-6xl mx-auto w-full px-4 py-6 flex-1">
+  <h1 class="text-2xl font-extrabold mb-1">Advanced Math Worksheet Generator</h1>
+  <p class="text-sm text-stone-600 mb-4">Configure problems below, watch the live preview update, then generate a combined worksheet + answer key PDF.</p>
+
+  <div class="flex flex-col md:grid md:grid-cols-[360px_1fr_300px] gap-6 items-start">
+
+    <!-- CONTROLS -->
+    <div id="controls" class="order-1 card-soft p-4 w-full">
+      <div class="flex items-center gap-2 mb-4">
+        <label class="text-sm font-medium">Rows
+          <input id="cfg-rows" type="number" min="1" max="25" value="4" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
+        </label>
+        <label class="text-sm font-medium">Cols
+          <input id="cfg-cols" type="number" min="1" max="15" value="2" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
+        </label>
+        <label class="text-sm font-medium">Pages
+          <input id="cfg-pages" type="number" min="1" max="50" value="1" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
+        </label>
+      </div>
+      <label class="flex items-center gap-2 text-sm mb-2">
+        <input id="cfg-randorder" type="checkbox" checked class="h-4 w-4" /> Randomize problem order
+      </label>
+      <label class="flex items-center gap-2 text-sm mb-4">
+        <input id="cfg-answerkey" type="checkbox" checked class="h-4 w-4" /> Include answer key page(s)
+      </label>
+
+      <div class="flex gap-2 mb-4">
+        <button id="export-ini-btn" type="button" class="btn-key btn-key-sm btn-key-cream flex-1">Export (.ini)</button>
+        <button id="import-ini-btn" type="button" class="btn-key btn-key-sm btn-key-cream flex-1">Import (.ini)</button>
+        <input id="import-ini-file" type="file" accept=".ini,text/plain" class="hidden" />
+      </div>
+
+      <div id="density-warning" class="hidden text-xs bg-amber-50 border-2 border-amber-300 text-amber-800 rounded-xl p-2 mb-4"></div>
+
+      <!-- Mode tabs -->
+      <div class="flex gap-2 mb-4 text-sm font-medium">
+        <button data-mode="standard" class="mode-tab btn-key btn-key-sm btn-key-primary">Standard</button>
+        <button data-mode="mixed_ops" class="mode-tab btn-key btn-key-sm btn-key-cream">Mixed Continuous</button>
+        <button data-mode="simultaneous" class="mode-tab btn-key btn-key-sm btn-key-cream">Simultaneous</button>
+      </div>
+
+      <!-- STANDARD PANEL -->
+      <div id="panel-standard" class="mode-panel space-y-4">
+        <div id="weight-warning" class="hidden text-xs bg-red-50 border-2 border-red-300 text-red-700 rounded-xl p-2"></div>
+
+        <template id="op-panel-template"></template>
+
+        <!-- + -->
+        <fieldset class="card-soft card-soft-sage p-3" data-op="+">
+          <legend class="text-sm font-bold px-1">Addition (+)</legend>
+          <label class="flex items-center gap-2 text-sm mb-2"><input type="checkbox" class="op-enabled h-4 w-4" checked /> Include</label>
+          <label class="block text-xs mb-2">Mix % <select class="op-weight border-2 border-stone-300 rounded-lg px-1 py-0.5 ml-1"></select></label>
+          <div class="flex gap-2 mb-2 text-xs items-center">Digits L/R
+            <input type="number" class="op-digitsl w-12 border-2 border-stone-300 rounded-lg px-1" value="2" min="1" max="5" />/
+            <input type="number" class="op-digitsr w-12 border-2 border-stone-300 rounded-lg px-1" value="1" min="1" max="5" />
+          </div>
+          <label class="block text-xs mb-2">Max limit (0=unlimited) <input type="number" class="op-maxnum w-16 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" /></label>
+          <label class="block text-xs mb-2">Terms <input type="number" class="op-terms w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="2" min="2" max="4" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-vertical h-4 w-4" /> Vertical form</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-regroup h-4 w-4" /> Allow regrouping</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-negatives h-4 w-4" /> Allow negatives</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-allowzero h-4 w-4" /> Allow 0</label>
+          <label class="block text-xs mb-1">Decimal digits <input type="number" class="op-decimals w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" min="0" max="3" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-crypto h-4 w-4" /> Cryptarithms %
+            <select class="op-cryptopct border-2 border-stone-300 rounded-lg px-1 py-0.5"></select>
+          </label>
+        </fieldset>
+
+        <!-- - -->
+        <fieldset class="card-soft card-soft-teal p-3" data-op="-">
+          <legend class="text-sm font-bold px-1">Subtraction (-)</legend>
+          <label class="flex items-center gap-2 text-sm mb-2"><input type="checkbox" class="op-enabled h-4 w-4" checked /> Include</label>
+          <label class="block text-xs mb-2">Mix % <select class="op-weight border-2 border-stone-300 rounded-lg px-1 py-0.5 ml-1"></select></label>
+          <div class="flex gap-2 mb-2 text-xs items-center">Digits L/R
+            <input type="number" class="op-digitsl w-12 border-2 border-stone-300 rounded-lg px-1" value="2" min="1" max="5" />/
+            <input type="number" class="op-digitsr w-12 border-2 border-stone-300 rounded-lg px-1" value="1" min="1" max="5" />
+          </div>
+          <label class="block text-xs mb-2">Max limit (0=unlimited) <input type="number" class="op-maxnum w-16 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" /></label>
+          <label class="block text-xs mb-2">Terms <input type="number" class="op-terms w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="2" min="2" max="4" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-vertical h-4 w-4" /> Vertical form</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-regroup h-4 w-4" /> Allow regrouping</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-negatives h-4 w-4" /> Allow negatives</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-allowzero h-4 w-4" /> Allow 0</label>
+          <label class="block text-xs mb-1">Decimal digits <input type="number" class="op-decimals w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" min="0" max="3" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-crypto h-4 w-4" /> Cryptarithms %
+            <select class="op-cryptopct border-2 border-stone-300 rounded-lg px-1 py-0.5"></select>
+          </label>
+        </fieldset>
+
+        <!-- × -->
+        <fieldset class="card-soft card-soft-gold p-3" data-op="×">
+          <legend class="text-sm font-bold px-1">Multiplication (×)</legend>
+          <label class="flex items-center gap-2 text-sm mb-2"><input type="checkbox" class="op-enabled h-4 w-4" /> Include</label>
+          <label class="block text-xs mb-2">Mix % <select class="op-weight border-2 border-stone-300 rounded-lg px-1 py-0.5 ml-1"></select></label>
+          <div class="flex gap-2 mb-2 text-xs items-center">Digits L/R
+            <input type="number" class="op-digitsl w-12 border-2 border-stone-300 rounded-lg px-1" value="2" min="1" max="5" />/
+            <input type="number" class="op-digitsr w-12 border-2 border-stone-300 rounded-lg px-1" value="1" min="1" max="5" />
+          </div>
+          <label class="block text-xs mb-2">Max limit (0=unlimited) <input type="number" class="op-maxnum w-16 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" /></label>
+          <label class="block text-xs mb-2">Terms <input type="number" class="op-terms w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="2" min="2" max="4" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-vertical h-4 w-4" /> Vertical form</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-negatives h-4 w-4" /> Allow negatives</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-allowzero h-4 w-4" /> Allow 0</label>
+          <label class="block text-xs mb-1">Decimal digits <input type="number" class="op-decimals w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" min="0" max="3" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-crypto h-4 w-4" /> Cryptarithms %
+            <select class="op-cryptopct border-2 border-stone-300 rounded-lg px-1 py-0.5"></select>
+          </label>
+        </fieldset>
+
+        <!-- ÷ -->
+        <fieldset class="card-soft card-soft-plum p-3" data-op="÷">
+          <legend class="text-sm font-bold px-1">Division (÷)</legend>
+          <label class="flex items-center gap-2 text-sm mb-2"><input type="checkbox" class="op-enabled h-4 w-4" /> Include</label>
+          <label class="block text-xs mb-2">Mix % <select class="op-weight border-2 border-stone-300 rounded-lg px-1 py-0.5 ml-1"></select></label>
+          <div class="flex gap-2 mb-2 text-xs items-center">Digits L/R
+            <input type="number" class="op-digitsl w-12 border-2 border-stone-300 rounded-lg px-1" value="2" min="1" max="5" />/
+            <input type="number" class="op-digitsr w-12 border-2 border-stone-300 rounded-lg px-1" value="1" min="1" max="5" />
+          </div>
+          <label class="block text-xs mb-2">Max limit (0=unlimited) <input type="number" class="op-maxnum w-16 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-vertical h-4 w-4" /> Vertical (long division) form</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-remainder h-4 w-4" /> Allow remainder</label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-negatives h-4 w-4" /> Allow negatives</label>
+          <label class="block text-xs mb-1">Decimal digits <input type="number" class="op-decimals w-12 border-2 border-stone-300 rounded-lg px-1 ml-1" value="0" min="0" max="3" /></label>
+          <label class="flex items-center gap-2 text-xs mb-1"><input type="checkbox" class="op-crypto h-4 w-4" /> Cryptarithms %
+            <select class="op-cryptopct border-2 border-stone-300 rounded-lg px-1 py-0.5"></select>
+          </label>
+        </fieldset>
+      </div>
+
+      <!-- MIXED PANEL -->
+      <div id="panel-mixed_ops" class="mode-panel space-y-3 hidden">
+        <p class="text-sm font-semibold">Operations included</p>
+        <div class="flex flex-wrap gap-3 text-xs">
+          <label class="flex items-center gap-1"><input id="mixed-add" type="checkbox" checked class="h-4 w-4" /> +</label>
+          <label class="flex items-center gap-1"><input id="mixed-sub" type="checkbox" checked class="h-4 w-4" /> -</label>
+          <label class="flex items-center gap-1"><input id="mixed-mul" type="checkbox" checked class="h-4 w-4" /> ×</label>
+          <label class="flex items-center gap-1"><input id="mixed-div" type="checkbox" checked class="h-4 w-4" /> ÷</label>
+        </div>
+        <label class="block text-xs">Max digits per number
+          <input id="mixed-maxdigits" type="number" min="1" max="4" value="2" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" />
+        </label>
+        <label class="block text-xs">Number of operations (up to 3)
+          <input id="mixed-numops" type="number" min="1" max="3" value="2" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" />
+        </label>
+        <label class="flex items-center gap-2 text-xs"><input id="mixed-parens" type="checkbox" checked class="h-4 w-4" /> Randomized parentheses (e.g. 3 × (4 + 3))</label>
+        <label class="flex items-center gap-2 text-xs"><input id="mixed-negatives" type="checkbox" class="h-4 w-4" /> Allow negative results</label>
+        <label class="flex items-center gap-2 text-xs"><input id="mixed-allowzero" type="checkbox" class="h-4 w-4" /> Allow 0</label>
+        <label class="block text-xs">Decimal digits <input id="mixed-decimals" type="number" min="0" max="3" value="0" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+      </div>
+
+      <!-- SIMULTANEOUS PANEL -->
+      <div id="panel-simultaneous" class="mode-panel space-y-3 hidden">
+        <p class="text-sm font-semibold">Problem type</p>
+        <label class="flex items-center gap-2 text-xs"><input type="radio" name="sim-type" value="standard" checked class="h-4 w-4" /> Standard (x = / y = boxes)</label>
+        <label class="flex items-center gap-2 text-xs"><input type="radio" name="sim-type" value="substitution_simple" class="h-4 w-4" /> Simple substitution (2nd eq. like y = 6)</label>
+        <label class="block text-xs">Max coefficient <input id="sim-maxcoef" type="number" min="2" max="10" value="5" class="w-14 border-2 border-stone-300 rounded-lg px-1 ml-1" /></label>
+        <label class="flex items-center gap-2 text-xs"><input id="sim-negatives" type="checkbox" class="h-4 w-4" /> Allow negative values/solutions</label>
+        <p class="text-[11px] italic text-stone-500">Uses only variables x and y.</p>
+      </div>
+
+      <button id="generate-btn" class="btn-key btn-key-primary mt-6 w-full py-3 text-sm">
+        Generate PDF (Worksheet + Answer Key)
+      </button>
+      <p id="generate-status" class="text-xs text-center mt-2 text-stone-500"></p>
+    </div>
+
+    <!-- SIDEBAR AD -->
+    <!-- Sidebar rectangle ad slot. Paste an AdSense <script>/<ins> tag inside #ad-slot-sidebar. -->
+    <div id="ad-slot-sidebar" class="order-2 md:order-3 ad-slot w-full md:w-[300px] h-[250px] mx-auto">
+      Ad Slot (300x250)
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="preview" class="order-3 md:order-2 card-soft p-4 w-full">
+      <h2 class="text-sm font-semibold text-stone-600">Problem Selection Preview</h2>
+      <p class="text-[11px] text-stone-400 mb-2">This is a sample of the problems your current settings would generate, so you can check the mix of operators and difficulty before printing &mdash; it is not a mockup of the page design. The actual PDF has no colors or rounded corners: every box is a plain black rectangle on white paper.</p>
+      <div class="overflow-x-auto">
+        <div id="preview-grid" class="grid gap-2" style="min-width:480px"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="border-t-2 border-stone-800 bg-[#fffaf1] mt-8">
+  <div class="max-w-6xl mx-auto px-4 py-6 text-center text-xs text-stone-500">
+    Ys School worksheet generators. PDFs are generated entirely client-side in your browser.
+  </div>
+</footer>
+
+<script src="js/pdf-common.js"></script>
+<script src="js/math-generator.js"></script>
+<script src="js/math-ui.js"></script>
+</body>
+</html>

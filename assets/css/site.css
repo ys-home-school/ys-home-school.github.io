@@ -1,0 +1,175 @@
+/* Small set of utilities Tailwind's CDN build can't express cleanly (arbitrary
+   worksheet-preview grid cells, dashed ad placeholders, index-number weight). */
+
+/* ---------- workbench design system ---------- */
+/* Warm paper ground + chunky squared-off "keyswitch" buttons (a flat offset
+   shadow that flattens on press, like a mechanical key bottoming out) in an
+   original terracotta/teal/gold/sage palette - a school-supplies feel
+   (chalk, wood, paper) rather than a candy-bright theme. Applied to nav
+   keys, primary actions, and card borders across every page. */
+
+body {
+  background-color: #f7f1e6;
+}
+
+.site-header {
+  background-color: #fffdf8;
+  border-bottom: 3px solid #33302b;
+}
+
+.nav-key {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 2px solid transparent;
+  transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease;
+  color: #4a4540;
+}
+.nav-key:hover {
+  border-color: #33302b;
+  transform: translateY(-1px);
+}
+.nav-key-active {
+  background-color: #e8734a;
+  border-color: #33302b;
+  color: #fff;
+  box-shadow: 0 3px 0 #a6461f;
+}
+.nav-key-active:hover {
+  transform: none;
+}
+
+/* Base keyswitch button: chunky border, offset flat "shadow" underneath that
+   collapses on press for a tactile, physical-button feel. Pair with a
+   .btn-key-<color> modifier for the fill/shadow color. */
+.btn-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.6rem;
+  border: 2.5px solid #33302b;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: 0 4px 0 #33302b;
+}
+.btn-key:hover { transform: translateY(-1px); box-shadow: 0 5px 0 #33302b; }
+.btn-key:active { transform: translateY(3px); box-shadow: 0 1px 0 #33302b; }
+.btn-key:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 4px 0 #33302b !important;
+}
+
+.btn-key-terracotta { background-color: #f6cdb9; color: #7a3016; }
+.btn-key-gold        { background-color: #f6dfa0; color: #6b4b00; }
+.btn-key-sage         { background-color: #c9e4c5; color: #1f4d2c; }
+.btn-key-teal        { background-color: #bfe3e0; color: #114c47; }
+.btn-key-plum        { background-color: #d9cdec; color: #402868; }
+.btn-key-cream       { background-color: #fffdf8; color: #4a4540; }
+.btn-key-primary     { background-color: #e8734a; color: #fff; box-shadow: 0 4px 0 #a6461f; border-color: #a6461f; }
+.btn-key-primary:hover { box-shadow: 0 5px 0 #a6461f; }
+.btn-key-primary:active { box-shadow: 0 1px 0 #a6461f; }
+
+/* Small keyswitch variant for compact controls (pager arrows, zoom, etc.) */
+.btn-key-sm {
+  border-radius: 0.5rem;
+  border-width: 2px;
+  box-shadow: 0 3px 0 #33302b;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}
+.btn-key-sm:hover { box-shadow: 0 4px 0 #33302b; }
+.btn-key-sm:active { box-shadow: 0 1px 0 #33302b; transform: translateY(2px); }
+
+/* Soft rounded card, used for fieldsets/sections/preview panels in place of
+   plain white boxes with thin borders. */
+.card-soft {
+  background-color: #fffdf8;
+  border: 2.5px solid #33302b;
+  border-radius: 1rem;
+  box-shadow: 0 3px 0 rgba(51, 48, 43, 0.15);
+}
+
+.card-soft-terracotta { background-color: #fcefe8; }
+.card-soft-gold        { background-color: #fdf6e3; }
+.card-soft-sage         { background-color: #eef7ec; }
+.card-soft-teal        { background-color: #e9f6f5; }
+.card-soft-plum        { background-color: #f4f0fa; }
+
+.pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 0.6rem;
+  border: 2px solid #33302b;
+  font-weight: 600;
+  font-size: 0.75rem;
+  background-color: #fffdf8;
+}
+
+.ad-slot {
+  border: 2.5px dashed #a39c8f;
+  background: repeating-linear-gradient(45deg, #fffdf8, #fffdf8 10px, #f3ebd9 10px, #f3ebd9 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78716c;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 0.85rem;
+}
+
+.worksheet-index {
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: 700;
+}
+
+/* Plain black-on-white, matching the actual printed PDF layout - the preview
+   shows problem placement/count only, never a color scheme, so it can't be
+   mistaken for what comes out of the printer. */
+.worksheet-preview-cell {
+  border: 2px solid #33302b;
+  border-radius: 0;
+  background: #fff;
+}
+
+.jp-font {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+
+.answer-box {
+  border: 1px solid #94a3b8;
+  border-radius: 0;
+  min-width: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crosshair-box {
+  position: relative;
+  border: 1.5px solid #334155;
+  border-radius: 0;
+}
+.crosshair-box::before, .crosshair-box::after {
+  content: "";
+  position: absolute;
+  border-color: #cbd5e1;
+  border-style: dashed;
+}
+.crosshair-box::before {
+  left: 0; right: 0; top: 50%;
+  border-top-width: 1px;
+}
+.crosshair-box::after {
+  top: 0; bottom: 0; left: 50%;
+  border-left-width: 1px;
+}
