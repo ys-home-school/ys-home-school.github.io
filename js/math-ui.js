@@ -40,7 +40,7 @@ function readOpConfig(fs) {
 }
 
 function getCurrentMode() {
-  const active = document.querySelector('.mode-tab.text-indigo-600');
+  const active = document.querySelector('.mode-tab.btn-key-primary');
   return active ? active.dataset.mode : 'standard';
 }
 
@@ -148,6 +148,168 @@ function applyMathConfigToForm(cfg) {
     if (sc.allow_negatives != null) document.getElementById('sim-negatives').checked = sc.allow_negatives;
     if (sc.max_coef != null) document.getElementById('sim-maxcoef').value = sc.max_coef;
   }
+}
+
+// ---------- grade-level quick templates ----------
+// Only uses features the generator actually has (standard +/-/x/÷ with digit
+// range/vertical/regrouping/negatives/decimals, mixed continuous equations,
+// and 2-variable simultaneous equations) - no fractions/money/geometry/ratios/
+// coordinate-plane/statistics, since none of those exist in the generator.
+// Full OpConfig shape per operator, so every field the generator/UI reads is
+// explicit and template-matching (below) can compare states reliably.
+function op(overrides) {
+  return {
+    enabled: false, weight: 0, digits_left: 2, digits_right: 1, max_number: 0,
+    is_vertical: false, allow_regrouping: false, allow_remainder: false,
+    allow_negatives: false, decimal_places: 0, allow_crypto: false,
+    pct_crypto: 10, num_terms: 2, allow_zero: false,
+    ...overrides,
+  };
+}
+
+const MATH_GRADE_TEMPLATES = {
+  grade1: {
+    label: 'Grade 1',
+    cycle: [{
+      rows: 5, columns: 4, mode: 'standard',
+      ops: {
+        '+': op({ enabled: true, weight: 50, digits_left: 1, is_vertical: false, allow_zero: true }),
+        '-': op({ enabled: true, weight: 50, digits_left: 1, is_vertical: false, allow_zero: true }),
+        '×': op({ digits_left: 1 }),
+        '÷': op({ digits_left: 1 }),
+      },
+    }],
+  },
+  grade2: {
+    label: 'Grade 2',
+    cycle: [{
+      rows: 5, columns: 4, mode: 'standard',
+      ops: {
+        '+': op({ enabled: true, weight: 35, digits_left: 3, is_vertical: false, allow_regrouping: true }),
+        '-': op({ enabled: true, weight: 35, digits_left: 3, is_vertical: false, allow_regrouping: true }),
+        '×': op({ enabled: true, weight: 15, digits_left: 1, is_vertical: false }),
+        '÷': op({ enabled: true, weight: 15, digits_left: 1, is_vertical: false }),
+      },
+    }],
+  },
+  grade3: {
+    label: 'Grade 3',
+    cycle: [
+      { // Multiplication & division fluency
+        rows: 5, columns: 4, mode: 'standard',
+        ops: {
+          '+': op({ enabled: true, weight: 10, digits_left: 3, is_vertical: true, allow_regrouping: true }),
+          '-': op({ enabled: true, weight: 10, digits_left: 3, is_vertical: true, allow_regrouping: true }),
+          '×': op({ enabled: true, weight: 40, digits_left: 2, is_vertical: true }),
+          '÷': op({ enabled: true, weight: 40, digits_left: 2, is_vertical: true }),
+        },
+      },
+      { // Multi-step problems (mixed continuous expressions)
+        rows: 4, columns: 2, mode: 'mixed_ops',
+        mixed_config: {
+          enabled_ops: { '+': true, '-': true, '×': true, '÷': true },
+          max_digits: 2, num_operations: 2, use_parentheses: true,
+          allow_negatives: false, decimal_places: 0, allow_zero: false,
+        },
+      },
+    ],
+  },
+  grade4: {
+    label: 'Grade 4',
+    cycle: [
+      { // Multi-digit whole-number arithmetic
+        rows: 4, columns: 2, mode: 'standard',
+        ops: {
+          '+': op({ enabled: true, weight: 25, digits_left: 4, is_vertical: true, allow_regrouping: true }),
+          '-': op({ enabled: true, weight: 25, digits_left: 4, is_vertical: true, allow_regrouping: true }),
+          '×': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true }),
+          '÷': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_remainder: true }),
+        },
+      },
+      { // Decimals
+        rows: 4, columns: 2, mode: 'standard',
+        ops: {
+          '+': op({ enabled: true, weight: 30, digits_left: 2, is_vertical: true, allow_regrouping: true, decimal_places: 1 }),
+          '-': op({ enabled: true, weight: 30, digits_left: 2, is_vertical: true, allow_regrouping: true, decimal_places: 1 }),
+          '×': op({ enabled: true, weight: 20, digits_left: 2, is_vertical: true, decimal_places: 1 }),
+          '÷': op({ enabled: true, weight: 20, digits_left: 2, is_vertical: true, decimal_places: 1 }),
+        },
+      },
+    ],
+  },
+  grade5: {
+    label: 'Grade 5',
+    cycle: [
+      { // Decimal operations
+        rows: 4, columns: 2, mode: 'standard',
+        ops: {
+          '+': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_regrouping: true, decimal_places: 2 }),
+          '-': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_regrouping: true, decimal_places: 2 }),
+          '×': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, decimal_places: 2 }),
+          '÷': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, decimal_places: 2 }),
+        },
+      },
+      { // Intro algebraic thinking (single unknown)
+        rows: 4, columns: 2, mode: 'simultaneous',
+        simultaneous_config: { type: 'substitution_simple', allow_negatives: false, max_coef: 5 },
+      },
+    ],
+  },
+  grade6: {
+    label: 'Grade 6',
+    cycle: [
+      { // Negative numbers
+        rows: 5, columns: 4, mode: 'standard',
+        ops: {
+          '+': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_regrouping: true, allow_negatives: true }),
+          '-': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_regrouping: true, allow_negatives: true }),
+          '×': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_negatives: true }),
+          '÷': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_negatives: true }),
+        },
+      },
+      { // Equations (2-variable)
+        rows: 4, columns: 2, mode: 'simultaneous',
+        simultaneous_config: { type: 'standard', allow_negatives: true, max_coef: 6 },
+      },
+    ],
+  },
+};
+
+// Extracts just the fields grade templates actually set, so we can tell
+// whether the form currently matches a given template state (to know
+// whether to advance the cycle or start fresh) without a fragile deep-equal
+// over the entire MathConfig.
+function mathTemplateSignature(cfg) {
+  if (cfg.mode === 'mixed_ops') {
+    return JSON.stringify({ mode: cfg.mode, mixed_config: cfg.mixed_config });
+  }
+  if (cfg.mode === 'simultaneous') {
+    return JSON.stringify({ mode: cfg.mode, simultaneous_config: cfg.simultaneous_config });
+  }
+  const ops = {};
+  for (const k of ['+', '-', '×', '÷']) {
+    const o = cfg.ops[k] || {};
+    ops[k] = {
+      enabled: o.enabled, weight: o.weight, digits_left: o.digits_left, is_vertical: o.is_vertical,
+      allow_regrouping: o.allow_regrouping, allow_remainder: o.allow_remainder,
+      allow_negatives: o.allow_negatives, decimal_places: o.decimal_places,
+    };
+  }
+  return JSON.stringify({ mode: cfg.mode, ops });
+}
+
+function applyMathTemplate(name) {
+  const template = MATH_GRADE_TEMPLATES[name];
+  if (!template) return;
+
+  const currentSignature = mathTemplateSignature(buildConfig());
+  const idx = template.cycle.findIndex((state) => mathTemplateSignature(state) === currentSignature);
+  // idx === -1 when nothing matches; (-1 + 1) % length === 0, so this needs
+  // no special-casing for "apply fresh" vs "advance to the next state".
+  const next = template.cycle[(idx + 1) % template.cycle.length];
+
+  applyMathConfigToForm(next);
+  updateAll();
 }
 
 // ---------- export/import settings as .ini ----------
@@ -479,6 +641,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   bindLiveInputs();
   document.getElementById('generate-btn').addEventListener('click', handleGenerate);
+
+  document.querySelectorAll('.grade-template-btn').forEach((btn) => {
+    btn.addEventListener('click', () => applyMathTemplate(btn.dataset.gradeTemplate));
+  });
 
   document.getElementById('export-ini-btn').addEventListener('click', exportMathIni);
   document.getElementById('import-ini-btn').addEventListener('click', () => document.getElementById('import-ini-file').click());
