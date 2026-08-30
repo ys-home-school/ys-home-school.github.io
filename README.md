@@ -36,16 +36,21 @@ directly via `file://` also works since there's no backend.
 2. Repo Settings -> Pages -> Deploy from branch -> pick `main` / root.
 3. Done - all asset paths are relative, no config needed.
 
-## Adding real ads
+## Ads
 
-Every ad placeholder is a plain `<div>` with a clear id and a dashed-border "Ad Slot" label:
+The site is linked to AdSense (publisher `ca-pub-6130154285914649`, verified via the `<script>` tag in every
+page's `<head>` and `/ads.txt` at the site root).
 
-- `#ad-slot-top-leaderboard` on every page (728x90-ish leaderboard, full width)
+- `#ad-slot-top-leaderboard` on every page (728x90-ish leaderboard, full width) - **live**, running AdSense ad
+  unit slot `7285905093`.
 - `#ad-slot-sidebar` on `math.html`, `japanese.html`, and `results.html` (300x250 rectangle, next to the control
-  panel / PDF viewer)
+  panel / PDF viewer) - **still a placeholder**, waiting on a second AdSense ad unit (create one sized ~300x250,
+  then swap it in the same way as the leaderboard unit below).
 
-To monetize, replace the placeholder contents of each div with your AdSense (or other network)
-`<ins>`/`<script>` snippet, e.g.:
+Both ad slots are plain `<div>`s placed as siblings of `#controls`/`#preview` (or the PDF viewer on
+`results.html`) - never nested inside them - so ad content can't overlap form fields or generated worksheet
+content, however the ad network chooses to render. To wire up a new/replacement ad unit, paste its snippet in
+place of the existing `<ins>`/`<script>` pair, e.g.:
 
 ```html
 <div id="ad-slot-top-leaderboard">
@@ -53,9 +58,6 @@ To monetize, replace the placeholder contents of each div with your AdSense (or 
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 ```
-
-Keep the ad slots outside `#controls` and `#preview` - they're deliberately placed as siblings so ad content
-can never overlap form fields or generated worksheet content.
 
 ## Adding a new worksheet tool
 
