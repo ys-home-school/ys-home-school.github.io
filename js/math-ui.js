@@ -185,8 +185,8 @@ const MATH_GRADE_TEMPLATES = {
     cycle: [{
       rows: 5, columns: 4, mode: 'standard',
       ops: {
-        '+': op({ enabled: true, weight: 35, digits_left: 3, is_vertical: false, allow_regrouping: true }),
-        '-': op({ enabled: true, weight: 35, digits_left: 3, is_vertical: false, allow_regrouping: true }),
+        '+': op({ enabled: true, weight: 35, digits_left: 2, is_vertical: false, allow_regrouping: true }),
+        '-': op({ enabled: true, weight: 35, digits_left: 2, is_vertical: false, allow_regrouping: true }),
         '×': op({ enabled: true, weight: 15, digits_left: 1, is_vertical: false }),
         '÷': op({ enabled: true, weight: 15, digits_left: 1, is_vertical: false }),
       },
@@ -198,17 +198,20 @@ const MATH_GRADE_TEMPLATES = {
       { // Multiplication & division fluency
         rows: 5, columns: 4, mode: 'standard',
         ops: {
-          '+': op({ enabled: true, weight: 10, digits_left: 3, is_vertical: true, allow_regrouping: true }),
-          '-': op({ enabled: true, weight: 10, digits_left: 3, is_vertical: true, allow_regrouping: true }),
-          '×': op({ enabled: true, weight: 40, digits_left: 2, is_vertical: true }),
-          '÷': op({ enabled: true, weight: 40, digits_left: 2, is_vertical: true }),
+          '+': op({ enabled: true, weight: 10, digits_left: 2, is_vertical: true, allow_regrouping: true }),
+          '-': op({ enabled: true, weight: 10, digits_left: 2, is_vertical: true, allow_regrouping: true }),
+          // digits_left caps BOTH factors (digits_right isn't used by the
+          // generator), so 1 here means single-digit x single-digit times-
+          // table facts (up to 9x9) - not 2-digit x 2-digit.
+          '×': op({ enabled: true, weight: 40, digits_left: 1, is_vertical: true }),
+          '÷': op({ enabled: true, weight: 40, digits_left: 1, is_vertical: true }),
         },
       },
       { // Multi-step problems (mixed continuous expressions)
         rows: 4, columns: 2, mode: 'mixed_ops',
         mixed_config: {
           enabled_ops: { '+': true, '-': true, '×': true, '÷': true },
-          max_digits: 2, num_operations: 2, use_parentheses: true,
+          max_digits: 1, num_operations: 2, use_parentheses: true,
           allow_negatives: false, decimal_places: 0, allow_zero: false,
         },
       },
@@ -222,8 +225,10 @@ const MATH_GRADE_TEMPLATES = {
         ops: {
           '+': op({ enabled: true, weight: 25, digits_left: 4, is_vertical: true, allow_regrouping: true }),
           '-': op({ enabled: true, weight: 25, digits_left: 4, is_vertical: true, allow_regrouping: true }),
-          '×': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true }),
-          '÷': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_remainder: true }),
+          // digits_left=2 here means up to 2-digit x 2-digit (both factors
+          // share the cap) - already a stretch for grade 4, so kept modest.
+          '×': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true }),
+          '÷': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true, allow_remainder: true }),
         },
       },
       { // Decimals
@@ -231,8 +236,8 @@ const MATH_GRADE_TEMPLATES = {
         ops: {
           '+': op({ enabled: true, weight: 30, digits_left: 2, is_vertical: true, allow_regrouping: true, decimal_places: 1 }),
           '-': op({ enabled: true, weight: 30, digits_left: 2, is_vertical: true, allow_regrouping: true, decimal_places: 1 }),
-          '×': op({ enabled: true, weight: 20, digits_left: 2, is_vertical: true, decimal_places: 1 }),
-          '÷': op({ enabled: true, weight: 20, digits_left: 2, is_vertical: true, decimal_places: 1 }),
+          '×': op({ enabled: true, weight: 20, digits_left: 1, is_vertical: true, decimal_places: 1 }),
+          '÷': op({ enabled: true, weight: 20, digits_left: 1, is_vertical: true, decimal_places: 1 }),
         },
       },
     ],
@@ -245,8 +250,11 @@ const MATH_GRADE_TEMPLATES = {
         ops: {
           '+': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_regrouping: true, decimal_places: 2 }),
           '-': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_regrouping: true, decimal_places: 2 }),
-          '×': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, decimal_places: 2 }),
-          '÷': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, decimal_places: 2 }),
+          // Multiplication/division compound in difficulty much faster than
+          // add/subtract as digit count grows, so these stay smaller than
+          // the +/- above even though it's nominally the same "grade".
+          '×': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true, decimal_places: 1 }),
+          '÷': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true, decimal_places: 1 }),
         },
       },
       { // Intro algebraic thinking (single unknown)
@@ -263,13 +271,13 @@ const MATH_GRADE_TEMPLATES = {
         ops: {
           '+': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_regrouping: true, allow_negatives: true }),
           '-': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_regrouping: true, allow_negatives: true }),
-          '×': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_negatives: true }),
-          '÷': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: false, allow_negatives: true }),
+          '×': op({ enabled: true, weight: 25, digits_left: 1, is_vertical: false, allow_negatives: true }),
+          '÷': op({ enabled: true, weight: 25, digits_left: 1, is_vertical: false, allow_negatives: true }),
         },
       },
       { // Equations (2-variable)
         rows: 4, columns: 2, mode: 'simultaneous',
-        simultaneous_config: { type: 'standard', allow_negatives: true, max_coef: 6 },
+        simultaneous_config: { type: 'standard', allow_negatives: true, max_coef: 5 },
       },
     ],
   },
