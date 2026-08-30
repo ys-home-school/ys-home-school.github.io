@@ -41,11 +41,15 @@ directly via `file://` also works since there's no backend.
 The site is linked to AdSense (publisher `ca-pub-6130154285914649`, verified via the `<script>` tag in every
 page's `<head>` and `/ads.txt` at the site root).
 
-- `#ad-slot-top-leaderboard` on every page (728x90-ish leaderboard, full width) - **live**, running AdSense ad
-  unit slot `7285905093`.
+- `#ad-slot-top-leaderboard` on every page (728x90-ish leaderboard, full width) - **live**, AdSense ad unit slot
+  `7285905093`.
 - `#ad-slot-sidebar` on `math.html`, `japanese.html`, and `results.html` (300x250 rectangle, next to the control
-  panel / PDF viewer) - **still a placeholder**, waiting on a second AdSense ad unit (create one sized ~300x250,
-  then swap it in the same way as the leaderboard unit below).
+  panel / PDF viewer) - **live**, AdSense ad unit slot `8894500230`.
+
+Both containers cap their height (`h-[90px] overflow-hidden` / `h-[250px] overflow-hidden`) rather than letting
+`data-ad-format="auto"` reserve however much space it wants - useful right after linking a new AdSense account,
+since ads may not start filling for hours to a couple weeks, and an unfilled `auto`-format slot can otherwise
+reserve a very tall blank block while waiting.
 
 Both ad slots are plain `<div>`s placed as siblings of `#controls`/`#preview` (or the PDF viewer on
 `results.html`) - never nested inside them - so ad content can't overlap form fields or generated worksheet
