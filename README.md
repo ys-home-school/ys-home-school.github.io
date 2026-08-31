@@ -121,6 +121,11 @@ Design notes:
   keep the QR's data small enough to stay reliably scannable at print size. If the encoded URL would exceed
   900 characters (a large grid on one page), the QR is silently skipped rather than forcing an unscannably
   dense code - the homepage QR and the full printed answer-key page are always still there as a fallback.
+- The QR's physical size scales with how much data it's carrying (`qrSize = clamp(url.length / 10, 44, 66)`,
+  in both renderers) rather than staying fixed - a denser payload (more problems, or a big kana grid) needs
+  more physical room to keep its modules scannable, otherwise the code looks like the noise in a low-quality
+  photocopy. The worksheet-matching code text next to it is kept small (9pt) specifically so the QR isn't
+  starved of the header space it needs more.
 - **`answers.html` renders fully untrusted input.** The `d` param is attacker-controllable (anyone can craft a
   link), so `js/answers-viewer.js` HTML-escapes every decoded value before inserting it into the page - never
   pass decoded payload content through `innerHTML` unescaped if you touch this file.
@@ -173,6 +178,6 @@ Design notes:
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=7` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=8` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

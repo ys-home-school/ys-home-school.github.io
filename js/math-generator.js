@@ -635,27 +635,32 @@ class MathPDFRenderer {
 
     // Worksheet-matching code, e.g. "XRGD0831-A-1" - same code on the
     // worksheet page and its matching answer-key page (same pageNum), so a
-    // teacher can pair up printed sheets for a whole class by eye.
+    // teacher can pair up printed sheets for a whole class by eye. Kept
+    // small so the answer QR below it (which needs the room far more, to
+    // stay scannable) isn't starved of space.
     const code = `${baseCode}-A-${pageNum}`;
     const codeStr = `Code: ${code}`;
-    const codeWidth = helvetica.widthOfTextAtSize(codeStr, 11);
+    const codeWidth = helvetica.widthOfTextAtSize(codeStr, 9);
     page.drawText(codeStr, {
-      x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 40, size: 11, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
+      x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 40, size: 9, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
     });
 
     // Answer-key QR, worksheet pages only, right under the matching code -
     // scanning it opens a plain-text answer list (js/answers-viewer.js)
     // instead of needing the separate answer-key PDF/page. Kept up in the
     // header (not the bottom margin) so it can't get smudged by a student
-    // writing near the bottom of the page. Skipped above a size cap so a
-    // huge grid never gets forced into an unscannably dense code.
+    // writing near the bottom of the page. Sized up with the data it has to
+    // carry (more problems = denser payload = needs more physical room to
+    // stay scannable), capped at what the header has space for. Skipped
+    // above a size cap so a huge grid never gets forced into an unscannably
+    // dense code regardless of size.
     if (!isAnswerKey && this.config.include_answer_qr !== false) {
       const items = problems.map((prob, i) => `${i + 1}:${this._answerSummary(prob)}`).join(',');
       const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'math', a: items });
       if (url.length <= 900) {
         try {
-          const qrSize = 40;
-          drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - qrSize, PDF_PAGE.HEIGHT - 88, qrSize);
+          const qrSize = Math.max(44, Math.min(66, Math.round(url.length / 10)));
+          drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - qrSize, PDF_PAGE.HEIGHT - 48 - qrSize, qrSize);
         } catch (e) {
           console.warn('Answer QR code unavailable:', e);
         }
