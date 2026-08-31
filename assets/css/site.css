@@ -1,130 +1,176 @@
 /* Small set of utilities Tailwind's CDN build can't express cleanly (arbitrary
    worksheet-preview grid cells, dashed ad placeholders, index-number weight). */
 
-/* ---------- workbench design system ---------- */
-/* Warm paper ground + chunky squared-off "keyswitch" buttons (a flat offset
-   shadow that flattens on press, like a mechanical key bottoming out) in an
-   original terracotta/teal/gold/sage palette - a school-supplies feel
-   (chalk, wood, paper) rather than a candy-bright theme. Applied to nav
-   keys, primary actions, and card borders across every page. */
+/* ---------- keyboard-deck design system ---------- */
+/* Cool graphite "desk mat" ground + buttons rendered as physical keyboard
+   keycaps: a sculpted inset bevel (light top edge, darker inner shadow) plus
+   a solid offset shadow underneath the whole key that flattens on press, as
+   if it's bottoming out on the deck. Muted, low-saturation colorways (like a
+   real keycap set) rather than flat candy-bright fills. */
 
 body {
-  background-color: #f7f1e6;
+  background-color: #dde1e6;
 }
 
 .site-header {
-  background-color: #fffdf8;
-  border-bottom: 3px solid #33302b;
+  background-color: #eef0f3;
+  border-bottom: 3px solid #24262a;
 }
 
 .nav-key {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 0.9rem;
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   font-weight: 700;
   font-size: 0.875rem;
   border: 2px solid transparent;
   transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease;
-  color: #4a4540;
+  color: #3a3d42;
 }
 .nav-key:hover {
-  border-color: #33302b;
+  border-color: #24262a;
   transform: translateY(-1px);
 }
 .nav-key-active {
-  background-color: #e8734a;
-  border-color: #33302b;
+  background-color: #d9723f;
+  border-color: #24262a;
   color: #fff;
-  box-shadow: 0 3px 0 #a6461f;
+  box-shadow: 0 3px 0 #5c5f64;
 }
 .nav-key-active:hover {
   transform: none;
 }
 
-/* Base keyswitch button: chunky border, offset flat "shadow" underneath that
-   collapses on press for a tactile, physical-button feel. Pair with a
-   .btn-key-<color> modifier for the fill/shadow color. */
+/* Base keycap button: sculpted bevel (inset highlight/shadow) + a solid
+   offset "deck" shadow underneath that collapses on press, like a real
+   keyswitch bottoming out. Pair with a .btn-key-<color> modifier for the
+   keycap face/text color - the outer deck-shadow stays a uniform neutral
+   gray across all colors, like keycaps sitting on the same plate. */
 .btn-key {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  border-radius: 0.6rem;
-  border: 2.5px solid #33302b;
+  border-radius: 0.4rem;
+  border: 2px solid #24262a;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
-  box-shadow: 0 4px 0 #33302b;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.14),
+    0 4px 0 #5c5f64;
 }
-.btn-key:hover { transform: translateY(-1px); box-shadow: 0 5px 0 #33302b; }
-.btn-key:active { transform: translateY(3px); box-shadow: 0 1px 0 #33302b; }
+.btn-key:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.14),
+    0 5px 0 #5c5f64;
+}
+.btn-key:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.2),
+    0 1px 0 #5c5f64;
+}
 .btn-key:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
-  box-shadow: 0 4px 0 #33302b !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.14),
+    0 4px 0 #5c5f64 !important;
 }
 
-.btn-key-terracotta { background-color: #f6cdb9; color: #7a3016; }
-.btn-key-gold        { background-color: #f6dfa0; color: #6b4b00; }
-.btn-key-sage         { background-color: #c9e4c5; color: #1f4d2c; }
-.btn-key-teal        { background-color: #bfe3e0; color: #114c47; }
-.btn-key-plum        { background-color: #d9cdec; color: #402868; }
-.btn-key-cream       { background-color: #fffdf8; color: #4a4540; }
-.btn-key-primary     { background-color: #e8734a; color: #fff; box-shadow: 0 4px 0 #a6461f; border-color: #a6461f; }
-.btn-key-primary:hover { box-shadow: 0 5px 0 #a6461f; }
-.btn-key-primary:active { box-shadow: 0 1px 0 #a6461f; }
+.btn-key-terracotta { background-color: #d9b8a8; color: #4a2b1a; }
+.btn-key-gold        { background-color: #d9c896; color: #4a3c10; }
+.btn-key-sage         { background-color: #b9cbb0; color: #223a1c; }
+.btn-key-teal        { background-color: #a9c7c6; color: #163533; }
+.btn-key-plum        { background-color: #c2b3d1; color: #2f2040; }
+.btn-key-cream       { background-color: #e9eaec; color: #2a2c2f; }
+.btn-key-primary {
+  background-color: #d9723f; color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.18),
+    0 4px 0 #5c5f64;
+  border-color: #24262a;
+}
+.btn-key-primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 4px rgba(0, 0, 0, 0.18),
+    0 5px 0 #5c5f64;
+}
+.btn-key-primary:active {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 0 #5c5f64;
+}
 
-/* Small keyswitch variant for compact controls (pager arrows, zoom, etc.) */
+/* Small keycap variant for compact controls (pager arrows, zoom, etc.) */
 .btn-key-sm {
-  border-radius: 0.5rem;
+  border-radius: 0.35rem;
   border-width: 2px;
-  box-shadow: 0 3px 0 #33302b;
   padding: 0.25rem 0.6rem;
   font-size: 0.75rem;
 }
-.btn-key-sm:hover { box-shadow: 0 4px 0 #33302b; }
-.btn-key-sm:active { box-shadow: 0 1px 0 #33302b; transform: translateY(2px); }
+.btn-key-sm, .btn-key-sm.btn-key-primary {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.14),
+    0 3px 0 #5c5f64;
+}
+.btn-key-sm:hover, .btn-key-sm.btn-key-primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.14),
+    0 4px 0 #5c5f64;
+}
+.btn-key-sm:active, .btn-key-sm.btn-key-primary:active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22), 0 1px 0 #5c5f64;
+  transform: translateY(2px);
+}
 
 /* Soft rounded card, used for fieldsets/sections/preview panels in place of
    plain white boxes with thin borders. */
 .card-soft {
-  background-color: #fffdf8;
-  border: 2.5px solid #33302b;
-  border-radius: 1rem;
-  box-shadow: 0 3px 0 rgba(51, 48, 43, 0.15);
+  background-color: #f4f5f7;
+  border: 2.5px solid #24262a;
+  border-radius: 0.85rem;
+  box-shadow: 0 3px 0 rgba(36, 38, 42, 0.15);
 }
 
-.card-soft-terracotta { background-color: #fcefe8; }
-.card-soft-gold        { background-color: #fdf6e3; }
-.card-soft-sage         { background-color: #eef7ec; }
-.card-soft-teal        { background-color: #e9f6f5; }
-.card-soft-plum        { background-color: #f4f0fa; }
+.card-soft-terracotta { background-color: #efe4de; }
+.card-soft-gold        { background-color: #f0ead9; }
+.card-soft-sage         { background-color: #e4ebe1; }
+.card-soft-teal        { background-color: #dfeae9; }
+.card-soft-plum        { background-color: #e9e3ef; }
 
 .pill-tag {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.75rem;
-  border-radius: 0.6rem;
-  border: 2px solid #33302b;
+  border-radius: 0.5rem;
+  border: 2px solid #24262a;
   font-weight: 600;
   font-size: 0.75rem;
-  background-color: #fffdf8;
+  background-color: #f4f5f7;
 }
 
 .ad-slot {
-  border: 2.5px dashed #a39c8f;
-  background: repeating-linear-gradient(45deg, #fffdf8, #fffdf8 10px, #f3ebd9 10px, #f3ebd9 20px);
+  border: 2.5px dashed #9a9ea4;
+  background: repeating-linear-gradient(45deg, #f4f5f7, #f4f5f7 10px, #e6e8eb 10px, #e6e8eb 20px);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #78716c;
+  color: #63666b;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  border-radius: 0.85rem;
+  border-radius: 0.6rem;
 }
 
 .worksheet-index {

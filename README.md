@@ -51,8 +51,8 @@ where visitors are actually looking/acting:
 - `#ad-slot-sidebar` (300x250 rectangle, next to the control panel) - **live**, ad unit slot `8894500230`.
 - `#ad-slot-below-preview` (728x90-ish, under the live problem/kana preview grid) - **live**, reuses the
   leaderboard ad unit slot `7285905093` (repositioned here instead of the top of the page).
-- `#ad-slot-below-generate` (under the Generate button, left column) - **placeholder**, waiting on a third
-  AdSense ad unit sized for that narrower column; swap it in the same way as the others once created.
+- `#ad-slot-below-generate` (under the Generate button, left column) - **live**, AdSense ad unit slot
+  `7199305456`.
 
 All ad slot containers cap their height (`overflow-hidden` + a fixed height) rather than letting
 `data-ad-format="auto"` reserve however much space it wants - useful right after linking a new AdSense account,
