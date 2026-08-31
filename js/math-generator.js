@@ -609,6 +609,24 @@ class MathPDFRenderer {
     return `Layout: ${cfg.rows}x${cfg.columns} | Pages: ${cfg.num_pages} | Mode: ${opsStr} | Randomized: ${cfg.randomize_order}`;
   }
 
+  // Short answer text for one problem - used by the parent-facing answer QR,
+  // not drawn on the page itself. Deliberately terse (just the solved value,
+  // not the full worked equation) to keep the QR's data small enough to stay
+  // reliably scannable at print size.
+  _answerSummary(prob) {
+    if (prob.operator === 'simultaneous') {
+      if (prob.sim_type === 'substitution_simple') {
+        const targetVar = (prob.sim_lines[1].includes('x =') || prob.sim_lines[1].includes('x=')) ? 'x' : 'y';
+        const missingVar = targetVar === 'x' ? 'y' : 'x';
+        const ansVal = missingVar === 'x' ? prob.sim_ans_x : prob.sim_ans_y;
+        return `${missingVar}=${ansVal}`;
+      }
+      return `x=${prob.sim_ans_x},y=${prob.sim_ans_y}`;
+    }
+    if (prob.is_cryptarithm) return String(prob.expr_parts[prob.missing_index]);
+    return String(prob.answer);
+  }
+
   _renderPageContent(page, problems, isAnswerKey, baseCode, pageNum) {
     const { helvetica } = this.fonts;
     const baseTitle = (this.config.title || 'Math Practice Test').trim() || 'Math Practice Test';
@@ -669,6 +687,23 @@ class MathPDFRenderer {
       drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 20, 32);
     } catch (e) {
       console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
+    }
+
+    // Optional second QR, worksheet pages only - lets a parent scan straight
+    // to a plain-text answer list (see js/answers-viewer.js) instead of
+    // needing the separate answer-key PDF/page. Skipped above a size cap so
+    // a huge grid never gets forced into an unscannably dense code.
+    if (!isAnswerKey && this.config.include_answer_qr !== false) {
+      const items = problems.map((prob, i) => `${i + 1}:${this._answerSummary(prob)}`).join(',');
+      const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'math', a: items });
+      if (url.length <= 900) {
+        try {
+          drawQrCode(page, url, PDF_PAGE.MARGIN, 20, 44);
+          page.drawText('Scan for answers', { x: PDF_PAGE.MARGIN, y: 66, size: 7, font: helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5) });
+        } catch (e) {
+          console.warn('Answer QR code unavailable:', e);
+        }
+      }
     }
   }
 

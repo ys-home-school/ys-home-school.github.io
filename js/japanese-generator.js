@@ -582,6 +582,26 @@ class PDFWorksheetRenderer {
       } catch (e) {
         console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
       }
+
+      // Optional second QR, worksheet pages only - a parent scans straight to
+      // a plain-text answer list (js/answers-viewer.js) instead of needing
+      // the separate answer-key PDF/page. Skipped above a size cap so a huge
+      // grid never gets forced into an unscannably dense code.
+      if (!isAnswerKey && this.config.include_answer_qr !== false) {
+        const pairs = [];
+        gridData.forEach((row) => row.forEach((item) => {
+          if (!item.is_empty) pairs.push(`${item.prompt}:${item.answer}`);
+        }));
+        const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'jp', a: pairs.join(',') });
+        if (url.length <= 900) {
+          try {
+            drawQrCode(page, url, PDF_PAGE.MARGIN, 20, 44);
+            page.drawText('Scan for answers', { x: PDF_PAGE.MARGIN, y: 66, size: 7, font: helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5) });
+          } catch (e) {
+            console.warn('Answer QR code unavailable:', e);
+          }
+        }
+      }
     });
   }
 }

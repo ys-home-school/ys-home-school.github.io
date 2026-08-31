@@ -130,6 +130,37 @@ function drawTextAt(page, text, x, y, font, size, color = PDFLib.rgb(0, 0, 0)) {
   page.drawText(text, { x, y, size, font, color });
 }
 
+// ---------- answer-key QR payload (URL-embedded, no server) ----------
+// The whole site is static with no backend, so an "answer QR" can't look
+// anything up server-side - instead the QR encodes a link to answers.html
+// with the answer data itself packed into the URL (base64url JSON in the
+// `d` query param), decoded entirely client-side by js/answers-viewer.js.
+// This targets parents helping with homework: scan once, see a plain list
+// of answers, no need to ask the teacher or dig up a saved PDF.
+function base64UrlEncodeUtf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach((b) => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlDecodeUtf8(b64url) {
+  let b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+  while (b64.length % 4) b64 += '=';
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+// `payload` is a small plain object - see math-generator.js/japanese-generator.js
+// for the exact shape each tool packs in. Returns the full absolute URL to
+// embed in the answer QR code.
+function buildAnswerQrUrl(payload) {
+  const encoded = base64UrlEncodeUtf8(JSON.stringify(payload));
+  return `https://ys-learning-lab.github.io/answers.html?d=${encoded}`;
+}
+
 async function downloadPdfBytes(bytes, filename) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);

@@ -21,6 +21,10 @@ ad script you add yourself.
 - `results.html` / `js/pdf-viewer.js` - shared PDF viewer page every "Generate" button opens in a new tab
   instead of downloading directly (renders the PDF with pdf.js, thumbnail rail + Print + Download, ad slots
   around the viewer). See "Adding a new worksheet tool" below.
+- `answers.html` / `js/answers-viewer.js` - decodes and displays the parent-facing answer QR code's payload
+  (see "Parent answer-key QR code" below). No IndexedDB handoff like `results.html` - everything needed to
+  render the page arrives in its own URL, since the QR is meant to be scanned on a phone with no prior visit
+  to the site.
 - `assets/css/site.css` - small set of utility classes Tailwind's CDN build can't express (dashed ad placeholders,
   bold worksheet index numbers, crosshair answer boxes)
 
@@ -94,6 +98,30 @@ by following the same three-step contract used by `math-ui.js`/`japanese-ui.js`:
 
 No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 
+## Parent answer-key QR code
+
+Every worksheet page (not the answer-key pages - they already have the answers printed) can carry a second QR
+code, bottom-left, alongside the existing homepage QR at bottom-right. Toggle: `#cfg-answerqr` on both
+math.html and japanese.html, `config.include_answer_qr`, default on.
+
+Since this whole site is static with no backend, the QR can't look anything up server-side - instead it encodes
+a link to `answers.html` with the answer data itself packed into the URL:
+`buildAnswerQrUrl()` in `js/pdf-common.js` JSON-encodes `{ c: matchingCode, t: title, s: 'math'|'jp', a: answerString }`
+and base64url-encodes it into a `?d=` query param. `js/answers-viewer.js` decodes it entirely client-side and
+renders a plain answer list - no lookup, no network round-trip beyond loading the static page itself. This
+targets parents helping with homework: scan once, see the answers, no need to track down the teacher or dig up
+a saved PDF, and no server cost since it's the same static hosting as everything else on this site.
+
+Design notes:
+- The answer text per problem is deliberately terse (just the solved value - `_answerSummary()` in
+  math-generator.js, `prompt:answer` pairs in japanese-generator.js) rather than a full worked equation, to
+  keep the QR's data small enough to stay reliably scannable at print size. If the encoded URL would exceed
+  900 characters (a large grid on one page), the QR is silently skipped rather than forcing an unscannably
+  dense code - the homepage QR and the full printed answer-key page are always still there as a fallback.
+- **`answers.html` renders fully untrusted input.** The `d` param is attacker-controllable (anyone can craft a
+  link), so `js/answers-viewer.js` HTML-escapes every decoded value before inserting it into the page - never
+  pass decoded payload content through `innerHTML` unescaped if you touch this file.
+
 ## Notes on the port
 
 - No `eval()`/`new Function()` anywhere. The math tool's mixed-continuous-equation feature (which used Python's
@@ -142,6 +170,6 @@ No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=5` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=6` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

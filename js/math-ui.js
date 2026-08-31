@@ -82,8 +82,9 @@ function buildConfig() {
   const title = document.getElementById('cfg-title').value;
   const teacher = document.getElementById('cfg-teacher').value;
   const show_settings_footer = document.getElementById('cfg-footer').checked;
+  const include_answer_qr = document.getElementById('cfg-answerqr').checked;
 
-  return { rows, columns, num_pages, randomize_order, combined_pdf: true, mode, ops, mixed_config, simultaneous_config, include_answer_key, title, teacher, show_settings_footer };
+  return { rows, columns, num_pages, randomize_order, combined_pdf: true, mode, ops, mixed_config, simultaneous_config, include_answer_key, title, teacher, show_settings_footer, include_answer_qr };
 }
 
 // Reverse of readOpConfig() - writes an OpConfig-shaped object back onto one
@@ -120,6 +121,7 @@ function applyMathConfigToForm(cfg) {
   if (cfg.title != null) document.getElementById('cfg-title').value = cfg.title;
   if (cfg.teacher != null) document.getElementById('cfg-teacher').value = cfg.teacher;
   if (cfg.show_settings_footer != null) document.getElementById('cfg-footer').checked = cfg.show_settings_footer;
+  if (cfg.include_answer_qr != null) document.getElementById('cfg-answerqr').checked = cfg.include_answer_qr;
   if (cfg.mode) setMathMode(cfg.mode);
 
   if (cfg.ops) {
@@ -344,6 +346,7 @@ function mathConfigToIni(cfg) {
     `title = ${cfg.title || ''}`,
     `teacher = ${cfg.teacher || ''}`,
     `show_settings_footer = ${cfg.show_settings_footer}`,
+    `include_answer_qr = ${cfg.include_answer_qr}`,
     '',
   ];
   for (const op of MATH_OPS) {
@@ -438,6 +441,7 @@ function mathConfigFromIni(text) {
       else if (key === 'title') cfg.title = value;
       else if (key === 'teacher') cfg.teacher = value;
       else if (key === 'show_settings_footer') cfg.show_settings_footer = toBool(value);
+      else if (key === 'include_answer_qr') cfg.include_answer_qr = toBool(value);
     } else if (section === 'MIXED') {
       if (key === 'add') cfg.mixed_config.enabled_ops['+'] = toBool(value);
       else if (key === 'sub') cfg.mixed_config.enabled_ops['-'] = toBool(value);

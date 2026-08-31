@@ -24,6 +24,7 @@ function buildJpConfig() {
     include_answer_key: document.getElementById('cfg-answerkey').checked,
     title: document.getElementById('cfg-title').value,
     teacher: document.getElementById('cfg-teacher').value,
+    include_answer_qr: document.getElementById('cfg-answerqr').checked,
   };
 }
 
@@ -128,6 +129,7 @@ function applyJpConfigToForm(cfg) {
   if (cfg.include_answer_key != null) document.getElementById('cfg-answerkey').checked = cfg.include_answer_key;
   if (cfg.title != null) document.getElementById('cfg-title').value = cfg.title;
   if (cfg.teacher != null) document.getElementById('cfg-teacher').value = cfg.teacher;
+  if (cfg.include_answer_qr != null) document.getElementById('cfg-answerqr').checked = cfg.include_answer_qr;
   syncGroupToggleAvailability();
   syncGenerateButtonLabel();
 }
@@ -257,6 +259,7 @@ function jpConfigToIni(cfg) {
     `include_answer_key = ${cfg.include_answer_key}`,
     `title = ${cfg.title || ''}`,
     `teacher = ${cfg.teacher || ''}`,
+    `include_answer_qr = ${cfg.include_answer_qr}`,
   ];
   return lines.join('\n') + '\n';
 }
@@ -294,6 +297,7 @@ function jpConfigFromIni(text) {
       if (key === 'include_answer_key') cfg.include_answer_key = toBool(value);
       if (key === 'title') cfg.title = value;
       if (key === 'teacher') cfg.teacher = value;
+      if (key === 'include_answer_qr') cfg.include_answer_qr = toBool(value);
     }
   }
   cfg.categories = categories;
