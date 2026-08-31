@@ -105,6 +105,18 @@ const FAMILY_MAP = [
   ['まみむめも', 'M'], ['やゆよゃゅょ', 'Y'], ['らりるれろ', 'R'], ['わをん', 'W'],
 ];
 
+// Kana are randomly placed, so nothing stops two or three adjacent cells
+// from spelling something inappropriate when read left-to-right or
+// top-to-bottom (a real risk once a grid gets big) - checked here in
+// hiragana form regardless of whether the grid is showing katakana or
+// hiragana prompts, since the two read identically. Deliberately a short,
+// curated list of clearly inappropriate items, not general profanity/slang
+// filtering - see RandomizationEngine._sanitizeGrid().
+const KANA_ADJACENCY_BLACKLIST = [
+  'しね', 'はげ', 'ほも', 'くそ', 'ぶす', 'でぶ',
+  'うんこ', 'うんち', 'ちんこ', 'まんこ',
+];
+
 class RandomizationEngine {
   constructor(config, database) {
     this.config = config;
@@ -320,15 +332,108 @@ class RandomizationEngine {
             continue;
           }
           const itemDir = dirMap.get(pair.key);
-          if (itemDir === 'k2h') row.push({ prompt: pair.katakana, answer: pair.hiragana, prompt_type: 'katakana', is_empty: false });
-          else row.push({ prompt: pair.hiragana, answer: pair.katakana, prompt_type: 'hiragana', is_empty: false });
+          if (itemDir === 'k2h') row.push({ prompt: pair.katakana, answer: pair.hiragana, prompt_type: 'katakana', is_empty: false, _hiragana: pair.hiragana });
+          else row.push({ prompt: pair.hiragana, answer: pair.katakana, prompt_type: 'hiragana', is_empty: false, _hiragana: pair.hiragana });
         }
         grid.push(row);
       }
+      this._sanitizeGrid(grid);
       pagesData.push(grid);
     }
 
     return pagesData;
+  }
+
+  // Breaks up any accidental horizontal/vertical run of adjacent cells that
+  // spells something in KANA_ADJACENCY_BLACKLIST, by swapping one cell in
+  // the offending run with another random cell elsewhere in the grid (and
+  // only keeping the swap if it doesn't just create a new violation at
+  // either swapped position). Not applied in sequential/"in order" mode -
+  // that mode's whole point is a fixed canonical a-i-u-e-o / ka-ki-ku-ke-ko
+  // layout, which swapping would break, and which never spells anything
+  // problematic in that fixed order anyway.
+  _sanitizeGrid(grid) {
+    if (!grid.length || !grid[0].length) return grid;
+    const rows = grid.length;
+    const cols = grid[0].length;
+
+    const coords = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!grid[r][c].is_empty) coords.push([r, c]);
+      }
+    }
+    if (coords.length < 2) return grid;
+
+    const runFrom = (r, c, dr, dc) => {
+      const hira = [];
+      for (let k = 0; k < 3; k++) {
+        const rr = r + dr * k;
+        const cc = c + dc * k;
+        if (rr < 0 || rr >= rows || cc < 0 || cc >= cols) break;
+        const item = grid[rr][cc];
+        if (!item || item.is_empty) break;
+        hira.push(item._hiragana);
+      }
+      return hira;
+    };
+    const runIsBad = (r, c, dr, dc) => {
+      const hira = runFrom(r, c, dr, dc);
+      if (hira.length >= 2 && KANA_ADJACENCY_BLACKLIST.includes(hira.slice(0, 2).join(''))) return true;
+      if (hira.length >= 3 && KANA_ADJACENCY_BLACKLIST.includes(hira.join(''))) return true;
+      return false;
+    };
+    const findViolation = () => {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (runIsBad(r, c, 0, 1)) return { r, c, dr: 0, dc: 1 };
+          if (runIsBad(r, c, 1, 0)) return { r, c, dr: 1, dc: 0 };
+        }
+      }
+      return null;
+    };
+    const cellIsBad = (r, c) => {
+      for (const [dr, dc] of [[0, 1], [1, 0]]) {
+        for (let start = -2; start <= 0; start++) {
+          const sr = r + dr * start;
+          const sc = c + dc * start;
+          if (sr < 0 || sc < 0 || sr >= rows || sc >= cols) continue;
+          if (runIsBad(sr, sc, dr, dc)) return true;
+        }
+      }
+      return false;
+    };
+    const swap = (a, b) => {
+      const tmp = grid[a[0]][a[1]];
+      grid[a[0]][a[1]] = grid[b[0]][b[1]];
+      grid[b[0]][b[1]] = tmp;
+    };
+
+    const MAX_PASSES = 60;
+    for (let pass = 0; pass < MAX_PASSES; pass++) {
+      const violation = findViolation();
+      if (!violation) break;
+
+      const target = [violation.r + violation.dr, violation.c + violation.dc];
+      const candidates = coords
+        .filter(([r, c]) => !(r === violation.r && c === violation.c) && !(r === target[0] && c === target[1]));
+      randShuffle2(candidates);
+
+      let resolved = false;
+      for (const other of candidates) {
+        swap(target, other);
+        if (!cellIsBad(target[0], target[1]) && !cellIsBad(other[0], other[1])) {
+          resolved = true;
+          break;
+        }
+        swap(target, other); // revert and try the next candidate
+      }
+      if (!resolved) {
+        console.warn('Could not resolve an inappropriate kana adjacency; leaving as generated.');
+        break;
+      }
+    }
+    return grid;
   }
 
   // Sequential/"in order" mode: instead of randomly sampling a subset per page
@@ -582,9 +687,27 @@ class PDFWorksheetRenderer {
           const y = startY - rIdx * this.cellHeight;
           const centerX = x + this.cellWidth / 2;
 
-          page.drawText(String(cellIndex), { x: x + 3, y: y - 2, size: 8, font: timesBold });
-
           const promptY = y - this.cellHeight * 0.25;
+
+          // Index number sits to the *left* of the prompt, roughly at its
+          // vertical center, reusing the cell's spare horizontal room
+          // (prompt is centered, so there's slack on both sides in a normal
+          // grid) instead of needing its own line above the prompt - the
+          // cell's vertical budget is already tight (prompt + answer box),
+          // and stacking the number above it left the two touching on
+          // denser grids. A wide grid (many columns) or a 2-character youon
+          // prompt (e.g. "キャ") can eat that side gap entirely, so measure
+          // the actual rendered prompt width and fall back to a smaller,
+          // tucked-into-the-corner number rather than let it collide.
+          const idxStr = String(cellIndex);
+          const promptWidth = notoSansJP.widthOfTextAtSize(item.prompt, 20);
+          const sideGap = (this.cellWidth - promptWidth) / 2;
+          if (sideGap >= 16) {
+            page.drawText(idxStr, { x: x + 3, y: promptY - 3, size: 8, font: timesBold });
+          } else {
+            page.drawText(idxStr, { x: x + 1, y: y - 7, size: 6, font: timesBold });
+          }
+
           page.drawText(item.prompt, {
             x: centerX - this._getCenterOffsetJp(item.prompt, 20, notoSansJP),
             y: promptY, size: 20, font: notoSansJP,

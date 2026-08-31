@@ -128,7 +128,10 @@ not the encoding:
   Japanese grid used to carry no printed numbering at all, so an answers-page list read "Q1, Q2, ..." with
   nothing on the actual worksheet for a student to match it against. The cell numbers and the QR/answers-page
   numbering are the same reading-order sequence, so "Q1" on the answers page now always means the box printed
-  "1".
+  "1". The number sits to the *left* of the prompt by default (reusing spare horizontal room instead of eating
+  into the cell's already-tight vertical budget), but falls back to a smaller corner placement when the
+  measured prompt width (a 2-character youon prompt, or a narrow many-column grid) would leave it no room -
+  `japanese-generator.js` measures this with `notoSansJP.widthOfTextAtSize()` rather than guessing.
 - The QR is drawn at error-correction level `'L'` (least redundant) instead of the default `'M'` -  fewer
   redundant bits means a smaller QR version for the same data, which is what actually determines module count.
 - The QR's physical size is derived from its **actual module count**, not guessed from string length -
@@ -144,6 +147,20 @@ not the encoding:
 - **`answers.html` renders fully untrusted input.** Its query params are attacker-controllable (anyone can craft
   a link), so `js/answers-viewer.js` HTML-escapes every decoded value before inserting it into the page - never
   pass decoded payload content through `innerHTML` unescaped if you touch this file.
+
+## Kana adjacency guard
+
+Kana are placed on the grid randomly, so nothing inherently stops two or three adjacent cells from spelling
+something inappropriate when read left-to-right or top-to-bottom - a real risk once a grid gets big enough
+(measured empirically at ~9% of trials on a dense 10x5 mixed-direction grid before this guard existed).
+`RandomizationEngine._sanitizeGrid()` in `js/japanese-generator.js` scans the finished grid for any
+horizontal/vertical run matching `KANA_ADJACENCY_BLACKLIST` (checked via each cell's hiragana reading,
+regardless of whether the grid displays katakana or hiragana prompts, since they read the same either way) and
+swaps one cell in the offending run with another random cell elsewhere in the grid - only keeping the swap if
+it doesn't just create a new violation at either swapped position. It's a short, curated list of clearly
+inappropriate items, not general profanity/slang filtering, and it only runs in the randomized/mixed-order
+path - sequential ("in order") mode lays out a fixed canonical a-i-u-e-o / ka-ki-ku-ke-ko layout that swapping
+would break, and which never spells anything problematic in that order anyway.
 
 ## Notes on the port
 
@@ -197,6 +214,6 @@ not the encoding:
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=11` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=12` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 
