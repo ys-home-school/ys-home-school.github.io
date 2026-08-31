@@ -41,10 +41,14 @@ directly via `file://` also works since there's no backend.
 The site is linked to AdSense (publisher `ca-pub-6130154285914649`, verified via the `<script>` tag in every
 page's `<head>` and `/ads.txt` at the site root).
 
-`index.html` and `results.html` keep the original layout:
+`results.html` keeps the original layout:
 - `#ad-slot-top-leaderboard` (728x90-ish leaderboard, full width) - **live**, AdSense ad unit slot `7285905093`.
-- `#ad-slot-sidebar` on `results.html` (300x250 rectangle, next to the PDF viewer) - **live**, AdSense ad unit
-  slot `8894500230`.
+- `#ad-slot-sidebar` (300x250 rectangle, next to the PDF viewer) - **live**, AdSense ad unit slot `8894500230`.
+
+`index.html` has two spots: a rectangle ad as the 4th tile in the 2x2 subject-cards grid (`#ad-slot-grid`, reuses
+the sidebar ad unit slot `8894500230`) and a leaderboard banner at the bottom of the page, below the grid
+(`#ad-slot-bottom-leaderboard`, reuses the leaderboard ad unit slot `7285905093`) - deliberately not at the top,
+so a first-time visitor sees the actual subject choices before any ad.
 
 `math.html` and `japanese.html` moved away from a top banner (low-attention position) to three spots nearer
 where visitors are actually looking/acting:
