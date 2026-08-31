@@ -618,6 +618,12 @@ class MathPDFRenderer {
         this._drawHorizontal(page, prob, x, y, isAnswerKey, i + 1);
       }
     });
+
+    const footerText = 'Powered by Ys Learning Lab';
+    const footerWidth = this.fonts.helvetica.widthOfTextAtSize(footerText, 10);
+    page.drawText(footerText, {
+      x: PDF_PAGE.WIDTH / 2 - footerWidth / 2, y: 28, size: 10, font: this.fonts.helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
+    });
   }
 
   async renderCombined() {

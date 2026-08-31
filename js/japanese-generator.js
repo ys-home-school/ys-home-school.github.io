@@ -545,9 +545,10 @@ class PDFWorksheetRenderer {
 
       const docType = isAnswerKey ? 'ANSWER KEY' : 'PRACTICE SHEET';
       const pageInfo = `Page ${pageNum} of ${totalPages}`;
-      const pageInfoStr = `Japanese Worksheet Generator - ${docType} - ${pageInfo}`;
+      const pageInfoStr = `Powered by Ys Learning Lab - ${docType} - ${pageInfo}`;
+      const pageInfoWidth = helvetica.widthOfTextAtSize(pageInfoStr, 10);
       page.drawText(pageInfoStr, {
-        x: PDF_PAGE.WIDTH / 2 - 120, y: 28, size: 10, font: helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
+        x: PDF_PAGE.WIDTH / 2 - pageInfoWidth / 2, y: 28, size: 10, font: helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
       });
 
       if (this.config.show_settings_footer) {
