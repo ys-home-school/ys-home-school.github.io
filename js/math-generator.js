@@ -649,21 +649,21 @@ class MathPDFRenderer {
     // scanning it opens a plain-text answer list (js/answers-viewer.js)
     // instead of needing the separate answer-key PDF/page. Kept up in the
     // header (not the bottom margin) so it can't get smudged by a student
-    // writing near the bottom of the page. Sized up with the data it has to
-    // carry (more problems = denser payload = needs more physical room to
-    // stay scannable), capped at what the header has space for. Skipped
-    // above a size cap so a huge grid never gets forced into an unscannably
-    // dense code regardless of size.
+    // writing near the bottom of the page. Sized to its actual module count
+    // (see sizeQrForData() in pdf-common.js), not just guessed from string
+    // length, and skipped entirely if even the max available size can't
+    // keep its modules legibly large - a QR a phone can't focus on is worse
+    // than no QR.
     if (!isAnswerKey && this.config.include_answer_qr !== false) {
       const items = problems.map((prob, i) => `${i + 1}:${this._answerSummary(prob)}`).join(',');
-      const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'math', a: items });
-      if (url.length <= 900) {
-        try {
-          const qrSize = Math.max(44, Math.min(66, Math.round(url.length / 10)));
-          drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - qrSize, PDF_PAGE.HEIGHT - 48 - qrSize, qrSize);
-        } catch (e) {
-          console.warn('Answer QR code unavailable:', e);
+      const url = buildAnswerQrUrl({ c: code, t: baseTitle, a: items });
+      try {
+        const fit = sizeQrForData(url, 'L');
+        if (fit) {
+          drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - fit.size, PDF_PAGE.HEIGHT - 48 - fit.size, fit.size, 'L');
         }
+      } catch (e) {
+        console.warn('Answer QR code unavailable:', e);
       }
     }
 

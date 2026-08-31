@@ -1,12 +1,12 @@
-// Wires up answers.html: decodes the `d` query param (written by
-// buildAnswerQrUrl() in pdf-common.js, embedded in the parent-facing answer
-// QR code drawn by math-generator.js/japanese-generator.js) and renders a
-// plain list of answers. No IndexedDB, no PDF rendering - everything a
-// visitor needs arrives in the URL itself, since this whole site has no
-// backend to look anything up on.
+// Wires up answers.html: decodes the `c`/`t`/`a` query params (written by
+// buildAnswerQrUrl() in pdf-common.js, embedded in the answer QR code drawn
+// by math-generator.js/japanese-generator.js) and renders a plain list of
+// answers. No IndexedDB, no PDF rendering - everything a visitor needs
+// arrives in the URL itself, since this whole site has no backend to look
+// anything up on.
 
-// The `d` param is fully attacker-controllable (anyone can craft a link),
-// so its decoded content must never be inserted as raw HTML.
+// The URL is fully attacker-controllable (anyone can craft a link), so its
+// decoded content must never be inserted as raw HTML.
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -19,34 +19,45 @@ function showEmpty() {
 }
 
 function parseAnswerString(a) {
-  // "1:56,2:102,..." (math) or "セ:せ,ト:と,..." (Japanese) - split on the
-  // FIRST colon per entry only, since a Japanese answer never contains one.
-  return a.split(',').map((entry) => {
+  // "1:56,2:102,..." (math, explicit index) or a plain "せ,と,わ,..." list
+  // (Japanese, reading order - no prompt half, to keep the QR small) - an
+  // entry with no colon falls back to its 1-based position as the label.
+  return a.split(',').map((entry, i) => {
     const idx = entry.indexOf(':');
-    if (idx === -1) return [entry, ''];
+    if (idx === -1) return [String(i + 1), entry];
     return [entry.slice(0, idx), entry.slice(idx + 1)];
   });
 }
 
+// Earlier links used a single base64url JSON `d` param instead of separate
+// c/t/a params - decode those too so an already-printed worksheet's QR
+// doesn't just dead-end.
+function parseLegacyPayload(d) {
+  const payload = JSON.parse(base64UrlDecodeUtf8(d));
+  if (!payload || typeof payload.a !== 'string') return null;
+  return { c: payload.c, t: payload.t, a: payload.a };
+}
+
 function init() {
   const params = new URLSearchParams(location.search);
-  const d = params.get('d');
-  if (!d) { showEmpty(); return; }
+  const aParam = params.get('a');
 
-  let payload;
+  let data = null;
   try {
-    payload = JSON.parse(base64UrlDecodeUtf8(d));
+    if (aParam) {
+      data = { c: params.get('c'), t: params.get('t'), a: base64UrlDecodeUtf8(aParam) };
+    } else if (params.get('d')) {
+      data = parseLegacyPayload(params.get('d'));
+    }
   } catch (e) {
     console.error('Could not decode answer QR payload:', e);
-    showEmpty();
-    return;
   }
-  if (!payload || typeof payload.a !== 'string') { showEmpty(); return; }
+  if (!data) { showEmpty(); return; }
 
-  document.getElementById('ans-title').textContent = payload.t || 'Answer Key';
-  document.getElementById('ans-code').textContent = payload.c || '(no code)';
+  document.getElementById('ans-title').textContent = data.t || 'Answer Key';
+  document.getElementById('ans-code').textContent = data.c || '(no code)';
 
-  const pairs = parseAnswerString(payload.a).slice(0, 500);
+  const pairs = parseAnswerString(data.a).slice(0, 500);
   const list = document.getElementById('ans-list');
   list.innerHTML = pairs.map(([q, a]) => {
     const isNumeric = /^\d+$/.test(q);

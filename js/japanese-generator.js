@@ -515,25 +515,29 @@ class PDFWorksheetRenderer {
       // scanning it opens a plain-text answer list (js/answers-viewer.js)
       // instead of needing the separate answer-key PDF/page. Kept up in the
       // header (not the bottom margin) so it can't get smudged by a student
-      // writing near the bottom of the page. Sized up with the data it has
-      // to carry (a bigger kana grid = more prompt:answer pairs = denser
-      // payload = needs more physical room to stay scannable), capped at
-      // what the header has space for. Skipped above a size cap so a huge
-      // grid never gets forced into an unscannably dense code regardless of
-      // size.
+      // writing near the bottom of the page. Only the target-script answers
+      // are sent (no prompt half) in grid reading order (left-to-right,
+      // top-to-bottom, matching how the grid itself reads) - every kana
+      // character is 3 UTF-8 bytes, so dropping the redundant prompt half
+      // roughly halves the payload, which matters far more for scannability
+      // here than for the math tool's plain-ASCII digits. Sized to its
+      // actual module count (see sizeQrForData() in pdf-common.js), not
+      // just guessed from string length, and skipped entirely if even the
+      // max available size can't keep its modules legibly large - a QR a
+      // phone can't focus on is worse than no QR.
       if (!isAnswerKey && this.config.include_answer_qr !== false) {
-        const pairs = [];
+        const answers = [];
         gridData.forEach((row) => row.forEach((item) => {
-          if (!item.is_empty) pairs.push(`${item.prompt}:${item.answer}`);
+          if (!item.is_empty) answers.push(item.answer);
         }));
-        const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'jp', a: pairs.join(',') });
-        if (url.length <= 900) {
-          try {
-            const qrSize = Math.max(44, Math.min(66, Math.round(url.length / 10)));
-            drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - qrSize, PDF_PAGE.HEIGHT - 44 - qrSize, qrSize);
-          } catch (e) {
-            console.warn('Answer QR code unavailable:', e);
+        const url = buildAnswerQrUrl({ c: code, t: baseTitle, a: answers.join(',') });
+        try {
+          const fit = sizeQrForData(url, 'L');
+          if (fit) {
+            drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - fit.size, PDF_PAGE.HEIGHT - 44 - fit.size, fit.size, 'L');
           }
+        } catch (e) {
+          console.warn('Answer QR code unavailable:', e);
         }
       }
 

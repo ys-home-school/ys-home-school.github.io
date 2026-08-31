@@ -108,26 +108,34 @@ bottom margin - a bottom-margin QR sits right where a student's hand rests while
 makes it unscannable.
 
 Since this whole site is static with no backend, the QR can't look anything up server-side - instead it encodes
-a link to `answers.html` with the answer data itself packed into the URL:
-`buildAnswerQrUrl()` in `js/pdf-common.js` JSON-encodes `{ c: matchingCode, t: title, s: 'math'|'jp', a: answerString }`
-and base64url-encodes it into a `?d=` query param. `js/answers-viewer.js` decodes it entirely client-side and
-renders a plain answer list - no lookup, no network round-trip beyond loading the static page itself. This
-targets parents helping with homework: scan once, see the answers, no need to track down the teacher or dig up
-a saved PDF, and no server cost since it's the same static hosting as everything else on this site.
+a link to `answers.html` with the answer data itself packed into the URL: `buildAnswerQrUrl({ c, t, a })` in
+`js/pdf-common.js` builds `answers.html?c=<code>&t=<title>&a=<base64url(answerString)>` - only the answer list
+itself is base64'd (unavoidably non-ASCII for Japanese), the code/title travel as plain query params, and there's
+no JSON wrapper (its braces/quotes/colons would otherwise get percent-escaped to 3x their size). `js/answers-viewer.js`
+decodes it entirely client-side and renders a plain answer list (it also still understands the older single
+`?d=<base64url JSON>` format, so an already-printed worksheet's QR doesn't dead-end). This targets parents
+helping with homework: scan once, see the answers, no need to track down the teacher or dig up a saved PDF, and
+no server cost since it's the same static hosting as everything else on this site.
 
-Design notes:
-- The answer text per problem is deliberately terse (just the solved value - `_answerSummary()` in
-  math-generator.js, `prompt:answer` pairs in japanese-generator.js) rather than a full worked equation, to
-  keep the QR's data small enough to stay reliably scannable at print size. If the encoded URL would exceed
-  900 characters (a large grid on one page), the QR is silently skipped rather than forcing an unscannably
-  dense code - the homepage QR and the full printed answer-key page are always still there as a fallback.
-- The QR's physical size scales with how much data it's carrying (`qrSize = clamp(url.length / 10, 44, 66)`,
-  in both renderers) rather than staying fixed - a denser payload (more problems, or a big kana grid) needs
-  more physical room to keep its modules scannable, otherwise the code looks like the noise in a low-quality
-  photocopy. The worksheet-matching code text next to it is kept small (9pt) specifically so the QR isn't
-  starved of the header space it needs more.
-- **`answers.html` renders fully untrusted input.** The `d` param is attacker-controllable (anyone can craft a
-  link), so `js/answers-viewer.js` HTML-escapes every decoded value before inserting it into the page - never
+Design notes - getting a QR that's actually legible on a phone at print size turned out to be the hard part,
+not the encoding:
+- The answer text per problem is deliberately terse: just the solved value (`_answerSummary()` in
+  math-generator.js) for math, and for Japanese just the target-script answer with **no prompt half** and no
+  index - a plain comma list in grid reading order (left-to-right, top-to-bottom), which the visitor matches by
+  position (answers.html notes this). Every kana character costs 3 UTF-8 bytes, so dropping the redundant
+  prompt roughly halves that payload - it matters far more for scannability here than it does for math's
+  plain-ASCII digits.
+- The QR is drawn at error-correction level `'L'` (least redundant) instead of the default `'M'` -  fewer
+  redundant bits means a smaller QR version for the same data, which is what actually determines module count.
+- The QR's physical size is derived from its **actual module count**, not guessed from string length -
+  `sizeQrForData()` in `js/pdf-common.js` builds the real QR object first, then sizes the box so each module
+  lands near a target size (~1.3pt/~0.46mm), clamped to what the header has room for (46-74pt). If the payload
+  is so dense that even the max size can't keep modules above a legibility floor (~0.85pt/~0.3mm), the QR is
+  skipped entirely rather than drawn too small to scan - the homepage QR and the full printed answer-key page
+  are always still there as a fallback. The worksheet-matching code text next to it is kept small (9pt)
+  specifically so the QR isn't starved of the header space it needs more.
+- **`answers.html` renders fully untrusted input.** Its query params are attacker-controllable (anyone can craft
+  a link), so `js/answers-viewer.js` HTML-escapes every decoded value before inserting it into the page - never
   pass decoded payload content through `innerHTML` unescaped if you touch this file.
 
 ## Notes on the port
@@ -178,6 +186,6 @@ Design notes:
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=8` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=9` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

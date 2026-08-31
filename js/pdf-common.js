@@ -106,8 +106,12 @@ function drawLineSeg(page, x1, y1, x2, y2, width = 1, dashArray = undefined, col
 // avoids needing to embed/generate a PNG. Requires the qrcode-generator CDN
 // script (global `qrcode()`) to be loaded on the page. `x`/`y` is the
 // bottom-left corner, `size` is the full QR code's width/height in points.
-function drawQrCode(page, text, x, y, size) {
-  const qr = qrcode(0, 'M'); // typeNumber 0 = auto-select smallest that fits
+// `ecLevel` ('L'|'M'|'Q'|'H') trades error-correction redundancy for module
+// count at a given data length - 'L' (least redundant) picks the smallest
+// QR version for a given payload, which matters far more for real-world
+// scannability at print size than the error-correction guarantee does.
+function drawQrCode(page, text, x, y, size, ecLevel = 'M') {
+  const qr = qrcode(0, ecLevel); // typeNumber 0 = auto-select smallest that fits
   qr.addData(text);
   qr.make();
   const moduleCount = qr.getModuleCount();
@@ -126,6 +130,27 @@ function drawQrCode(page, text, x, y, size) {
   }
 }
 
+// Picks a physical size for a data-carrying QR (the answer QR, whose payload
+// varies a lot with worksheet size) based on its actual module count, not a
+// guess from string length - a heavier payload needs more physical room to
+// stay scannable, and string length only loosely predicts module count once
+// text/alphanumeric/byte QR encoding modes come into play. Returns
+// `{ size, moduleCount }`, or `null` if the data is too dense to render
+// legibly even at `maxSize` (caller should skip drawing it entirely rather
+// than force out a code no phone camera can resolve).
+function sizeQrForData(text, ecLevel, { minSize = 46, maxSize = 74, targetModulePt = 1.3, minModulePt = 0.85 } = {}) {
+  const qr = qrcode(0, ecLevel);
+  qr.addData(text);
+  qr.make();
+  const moduleCount = qr.getModuleCount();
+  let size = Math.max(minSize, moduleCount * targetModulePt);
+  if (size > maxSize) {
+    if (maxSize / moduleCount < minModulePt) return null;
+    size = maxSize;
+  }
+  return { size, moduleCount };
+}
+
 function drawTextAt(page, text, x, y, font, size, color = PDFLib.rgb(0, 0, 0)) {
   page.drawText(text, { x, y, size, font, color });
 }
@@ -133,10 +158,17 @@ function drawTextAt(page, text, x, y, font, size, color = PDFLib.rgb(0, 0, 0)) {
 // ---------- answer-key QR payload (URL-embedded, no server) ----------
 // The whole site is static with no backend, so an "answer QR" can't look
 // anything up server-side - instead the QR encodes a link to answers.html
-// with the answer data itself packed into the URL (base64url JSON in the
-// `d` query param), decoded entirely client-side by js/answers-viewer.js.
-// This targets parents helping with homework: scan once, see a plain list
-// of answers, no need to ask the teacher or dig up a saved PDF.
+// with the answer data itself packed into the URL, decoded entirely
+// client-side by js/answers-viewer.js. This targets parents helping with
+// homework: scan once, see a plain list of answers, no need to ask the
+// teacher or dig up a saved PDF.
+//
+// Every byte here directly costs QR module density - a printed QR only
+// stays scannable up to a point, so the URL is built to avoid all avoidable
+// overhead: no JSON wrapper (its braces/quotes/colons would otherwise get
+// percent-escaped 3x their size), and only the answer list itself
+// (unavoidably non-ASCII for Japanese) gets base64'd - the code and title
+// travel as plain query params.
 function base64UrlEncodeUtf8(str) {
   const bytes = new TextEncoder().encode(str);
   let bin = '';
@@ -153,12 +185,17 @@ function base64UrlDecodeUtf8(b64url) {
   return new TextDecoder().decode(bytes);
 }
 
-// `payload` is a small plain object - see math-generator.js/japanese-generator.js
-// for the exact shape each tool packs in. Returns the full absolute URL to
-// embed in the answer QR code.
-function buildAnswerQrUrl(payload) {
-  const encoded = base64UrlEncodeUtf8(JSON.stringify(payload));
-  return `https://ys-learning-lab.github.io/answers.html?d=${encoded}`;
+// `c` = worksheet-matching code, `t` = optional title, `a` = the compact
+// answer-list string (e.g. "1:56,2:29,..." or, for Japanese, a plain
+// reading-order answer list with no prompt half - see the callers in
+// math-generator.js/japanese-generator.js). Returns the full absolute URL
+// to embed in the answer QR code.
+function buildAnswerQrUrl({ c, t, a }) {
+  const params = new URLSearchParams();
+  params.set('c', c);
+  if (t) params.set('t', t);
+  params.set('a', base64UrlEncodeUtf8(a));
+  return `https://ys-learning-lab.github.io/answers.html?${params.toString()}`;
 }
 
 async function downloadPdfBytes(bytes, filename) {
