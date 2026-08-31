@@ -150,7 +150,7 @@ function applyMathConfigToForm(cfg) {
   }
 }
 
-// ---------- grade-level quick templates ----------
+// ---------- level-based quick templates ----------
 // Only uses features the generator actually has (standard +/-/x/÷ with digit
 // range/vertical/regrouping/negatives/decimals, mixed continuous equations,
 // and 2-variable simultaneous equations) - no fractions/money/geometry/ratios/
@@ -167,9 +167,9 @@ function op(overrides) {
   };
 }
 
-const MATH_GRADE_TEMPLATES = {
-  grade1: {
-    label: 'Grade 1',
+const MATH_LEVEL_TEMPLATES = {
+  level1: {
+    label: 'Level 1',
     cycle: [{
       rows: 5, columns: 4, mode: 'standard',
       ops: {
@@ -180,8 +180,8 @@ const MATH_GRADE_TEMPLATES = {
       },
     }],
   },
-  grade2: {
-    label: 'Grade 2',
+  level2: {
+    label: 'Level 2',
     cycle: [{
       rows: 5, columns: 4, mode: 'standard',
       ops: {
@@ -192,8 +192,8 @@ const MATH_GRADE_TEMPLATES = {
       },
     }],
   },
-  grade3: {
-    label: 'Grade 3',
+  level3: {
+    label: 'Level 3',
     cycle: [
       { // Multiplication & division fluency
         rows: 5, columns: 4, mode: 'standard',
@@ -217,8 +217,8 @@ const MATH_GRADE_TEMPLATES = {
       },
     ],
   },
-  grade4: {
-    label: 'Grade 4',
+  level4: {
+    label: 'Level 4',
     cycle: [
       { // Multi-digit whole-number arithmetic
         rows: 4, columns: 2, mode: 'standard',
@@ -226,7 +226,7 @@ const MATH_GRADE_TEMPLATES = {
           '+': op({ enabled: true, weight: 25, digits_left: 4, is_vertical: true, allow_regrouping: true }),
           '-': op({ enabled: true, weight: 25, digits_left: 4, is_vertical: true, allow_regrouping: true }),
           // digits_left=2 here means up to 2-digit x 2-digit (both factors
-          // share the cap) - already a stretch for grade 4, so kept modest.
+          // share the cap) - already a stretch for level 4, so kept modest.
           '×': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true }),
           '÷': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true, allow_remainder: true }),
         },
@@ -242,8 +242,8 @@ const MATH_GRADE_TEMPLATES = {
       },
     ],
   },
-  grade5: {
-    label: 'Grade 5',
+  level5: {
+    label: 'Level 5',
     cycle: [
       { // Decimal operations
         rows: 4, columns: 2, mode: 'standard',
@@ -252,7 +252,7 @@ const MATH_GRADE_TEMPLATES = {
           '-': op({ enabled: true, weight: 25, digits_left: 3, is_vertical: true, allow_regrouping: true, decimal_places: 2 }),
           // Multiplication/division compound in difficulty much faster than
           // add/subtract as digit count grows, so these stay smaller than
-          // the +/- above even though it's nominally the same "grade".
+          // the +/- above even though it's nominally the same "level".
           '×': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true, decimal_places: 1 }),
           '÷': op({ enabled: true, weight: 25, digits_left: 2, is_vertical: true, decimal_places: 1 }),
         },
@@ -263,8 +263,8 @@ const MATH_GRADE_TEMPLATES = {
       },
     ],
   },
-  grade6: {
-    label: 'Grade 6',
+  level6: {
+    label: 'Level 6',
     cycle: [
       { // Negative numbers
         rows: 5, columns: 4, mode: 'standard',
@@ -283,7 +283,7 @@ const MATH_GRADE_TEMPLATES = {
   },
 };
 
-// Extracts just the fields grade templates actually set, so we can tell
+// Extracts just the fields level templates actually set, so we can tell
 // whether the form currently matches a given template state (to know
 // whether to advance the cycle or start fresh) without a fragile deep-equal
 // over the entire MathConfig.
@@ -307,7 +307,7 @@ function mathTemplateSignature(cfg) {
 }
 
 function applyMathTemplate(name) {
-  const template = MATH_GRADE_TEMPLATES[name];
+  const template = MATH_LEVEL_TEMPLATES[name];
   if (!template) return;
 
   const currentSignature = mathTemplateSignature(buildConfig());
@@ -650,8 +650,8 @@ document.addEventListener('DOMContentLoaded', () => {
   bindLiveInputs();
   document.getElementById('generate-btn').addEventListener('click', handleGenerate);
 
-  document.querySelectorAll('.grade-template-btn').forEach((btn) => {
-    btn.addEventListener('click', () => applyMathTemplate(btn.dataset.gradeTemplate));
+  document.querySelectorAll('.level-template-btn').forEach((btn) => {
+    btn.addEventListener('click', () => applyMathTemplate(btn.dataset.levelTemplate));
   });
 
   document.getElementById('export-ini-btn').addEventListener('click', exportMathIni);
