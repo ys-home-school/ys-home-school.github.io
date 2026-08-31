@@ -120,11 +120,15 @@ no server cost since it's the same static hosting as everything else on this sit
 Design notes - getting a QR that's actually legible on a phone at print size turned out to be the hard part,
 not the encoding:
 - The answer text per problem is deliberately terse: just the solved value (`_answerSummary()` in
-  math-generator.js) for math, and for Japanese just the target-script answer with **no prompt half** and no
-  index - a plain comma list in grid reading order (left-to-right, top-to-bottom), which the visitor matches by
-  position (answers.html notes this). Every kana character costs 3 UTF-8 bytes, so dropping the redundant
-  prompt roughly halves that payload - it matters far more for scannability here than it does for math's
-  plain-ASCII digits.
+  math-generator.js) for math, and for Japanese just the target-script answer with **no prompt half** - a
+  plain comma list in grid reading order (left-to-right, top-to-bottom). Every kana character costs 3 UTF-8
+  bytes, so dropping the redundant prompt roughly halves that payload - it matters far more for scannability
+  here than it does for math's plain-ASCII digits. This only works because every kana cell is now stamped with
+  a small bold index number (Times-Bold, same convention as the math tool's "1.", "2." problem numbers) - the
+  Japanese grid used to carry no printed numbering at all, so an answers-page list read "Q1, Q2, ..." with
+  nothing on the actual worksheet for a student to match it against. The cell numbers and the QR/answers-page
+  numbering are the same reading-order sequence, so "Q1" on the answers page now always means the box printed
+  "1".
 - The QR is drawn at error-correction level `'L'` (least redundant) instead of the default `'M'` -  fewer
   redundant bits means a smaller QR version for the same data, which is what actually determines module count.
 - The QR's physical size is derived from its **actual module count**, not guessed from string length -
@@ -172,8 +176,12 @@ not the encoding:
   a sheet in - except the answer-key pages, which drop Name/Date/Class (the teacher doesn't need those on their
   own key) and keep only the Teacher line. On the Japanese tool these are English-only (Helvetica) even though
   the sheet is otherwise bilingual, specifically to avoid needing to re-run the offline Noto Sans JP subsetting
-  pipeline for new kanji. The header is a compact 3-4 line block (`PDF_PAGE.HEADER_HEIGHT = 125`) with a small
-  title line instead of the original oversized heading, to leave more of the page for the actual worksheet grid.
+  pipeline for new kanji. The header is a compact 3-4 line block with a small title line instead of the
+  original oversized heading, to leave more of the page for the actual worksheet grid -
+  `PDF_PAGE.HEADER_HEIGHT` (currently `150`) is sized with real margin for the *worst case* (the answer QR at
+  its max size, stacked with a page's densest row-0 text ascending above its own baseline), not just the
+  common case, after a too-tight header let the QR/code visibly collide with the first problem row on some
+  worksheets.
 - The worksheet title and teacher name are editable form fields (`#cfg-title`/`#cfg-teacher` on both
   math.html and japanese.html, threaded through as `config.title`/`config.teacher`) instead of hardcoded text -
   Title defaults to "Math Practice Test" / "Kana Practice Test" and is printed as-is (with " - Answer Key"
@@ -189,6 +197,6 @@ not the encoding:
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=10` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=11` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

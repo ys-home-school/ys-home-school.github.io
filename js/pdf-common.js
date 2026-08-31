@@ -6,9 +6,15 @@ const PDF_PAGE = {
   WIDTH: 595.28,
   HEIGHT: 841.89,
   MARGIN: 40,
-  // Fits a compact header: small title/code row, Name/Date row, Teacher/Class
-  // row (plus, on the Japanese sheet, one extra English instruction row).
-  HEADER_HEIGHT: 125,
+  // Header: title row, Name/Date row, Teacher/Class row (plus, on the
+  // Japanese sheet, one extra English instruction row), and - on worksheet
+  // pages - the answer QR (up to 64pt, anchored at the header's top) with
+  // its code label below it. Sized with real margin for the *worst case*
+  // (max QR size stacked with a page's densest row-0 text ascending above
+  // its own baseline), not just the common case, after a too-tight header
+  // let the code label and QR visibly collide with the first problem row
+  // on some worksheets - see js/math-generator.js's qrTop/maxSize comments.
+  HEADER_HEIGHT: 150,
 };
 
 // Worksheet-matching "print code" for one full "Generate" click - 4 random

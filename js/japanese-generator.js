@@ -469,7 +469,7 @@ class PDFWorksheetRenderer {
   }
 
   _renderInto(pdfDoc, isAnswerKey, baseCode) {
-    const { helvetica, notoSansJP } = this.fonts;
+    const { helvetica, timesBold, notoSansJP } = this.fonts;
 
     let jpTitle, enTitle;
     if (this.config.direction === 'k2h') { jpTitle = 'カタカナ → ひらがな 練習'; enTitle = 'Write the Hiragana equivalent below.'; }
@@ -566,13 +566,23 @@ class PDFWorksheetRenderer {
 
       const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
 
+      // Small bold index number in the corner of every cell (same
+      // Times-Bold convention the math tool uses for its "1.", "2." problem
+      // numbers) - without this, the answer QR/page's "Q1, Q2, ..." list
+      // has nothing printed on the worksheet itself to match against, since
+      // a kana grid otherwise carries no visible numbering at all.
+      let cellIndex = 0;
+
       gridData.forEach((row, rIdx) => {
         row.forEach((item, cIdx) => {
           if (item.is_empty) return;
+          cellIndex += 1;
 
           const x = PDF_PAGE.MARGIN + cIdx * this.cellWidth;
           const y = startY - rIdx * this.cellHeight;
           const centerX = x + this.cellWidth / 2;
+
+          page.drawText(String(cellIndex), { x: x + 3, y: y - 2, size: 8, font: timesBold });
 
           const promptY = y - this.cellHeight * 0.25;
           page.drawText(item.prompt, {
