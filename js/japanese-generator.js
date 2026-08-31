@@ -711,13 +711,21 @@ class PDFWorksheetRenderer {
           drawLineSeg(page, boxX, midY, boxX + boxSize, midY, 0.5, [2, 2], dashColor);
           drawLineSeg(page, midX, boxY, midX, boxY + boxSize, 0.5, [2, 2], dashColor);
 
-          // Index number tucked into the box's own top-left corner instead
-          // of stacked above the prompt - reuses space the box already has
-          // to spare (the crosshair guides run through the center, not the
-          // corners) rather than demanding more of the cell's already-tight
-          // vertical budget, which is what caused the number and prompt to
-          // visibly touch on a normal-density grid.
-          page.drawText(String(cellIndex), { x: boxX + 2, y: boxY + boxSize - 8, size: 7, font: timesBold });
+          // Index number sits just outside the box's top-left corner, in
+          // the margin between the box and the cell edge - never inside the
+          // box itself (that would eat into the one place a student
+          // actually needs full room to write) and never stacked above the
+          // prompt (the cell's vertical budget has no slack for that; see
+          // the promptSize comment above). boxSize is capped at
+          // cellWidth*0.75, so there's always at least cellWidth*0.125 of
+          // margin on each side by construction - shrink the number to fit
+          // whatever sliver that leaves rather than assuming a fixed size.
+          const idxStr = String(cellIndex);
+          const leftMargin = boxX - x;
+          const idxSize = leftMargin >= 16 ? 7 : 5;
+          const idxWidth = timesBold.widthOfTextAtSize(idxStr, idxSize);
+          const idxX = Math.max(x + 1, boxX - idxWidth - 3);
+          page.drawText(idxStr, { x: idxX, y: boxY + boxSize - idxSize - 1, size: idxSize, font: timesBold });
 
           if (isAnswerKey) {
             const ansSize = boxSize * 0.7;
