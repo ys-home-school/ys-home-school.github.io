@@ -129,11 +129,14 @@ not the encoding:
   redundant bits means a smaller QR version for the same data, which is what actually determines module count.
 - The QR's physical size is derived from its **actual module count**, not guessed from string length -
   `sizeQrForData()` in `js/pdf-common.js` builds the real QR object first, then sizes the box so each module
-  lands near a target size (~1.3pt/~0.46mm), clamped to what the header has room for (46-74pt). If the payload
+  lands near a target size (~1.3pt/~0.46mm), clamped to what the header has room for (46-64pt). If the payload
   is so dense that even the max size can't keep modules above a legibility floor (~0.85pt/~0.3mm), the QR is
   skipped entirely rather than drawn too small to scan - the homepage QR and the full printed answer-key page
-  are always still there as a fallback. The worksheet-matching code text next to it is kept small (9pt)
-  specifically so the QR isn't starved of the header space it needs more.
+  are always still there as a fallback.
+- The QR is anchored at the very top of the header (right of the title) and gets first claim on the header's
+  vertical space; the worksheet-matching code is drawn small (8pt), *below* the QR rather than above it. It was
+  the other way around originally, which on a denser worksheet left the QR squeezed into whatever space was
+  left under the code text - not enough, so it ended up touching the problem grid below it.
 - **`answers.html` renders fully untrusted input.** Its query params are attacker-controllable (anyone can craft
   a link), so `js/answers-viewer.js` HTML-escapes every decoded value before inserting it into the page - never
   pass decoded payload content through `innerHTML` unescaped if you touch this file.
@@ -186,6 +189,6 @@ not the encoding:
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=9` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=10` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

@@ -502,29 +502,30 @@ class PDFWorksheetRenderer {
 
       // Worksheet-matching code, e.g. "XRGD0831-A-1" - same code on the
       // worksheet page and its matching answer-key page (same pageNum).
-      // Kept small so the answer QR below it (which needs the room far
-      // more, to stay scannable) isn't starved of space.
+      // Drawn small, below the answer QR (not above it) so the QR - which
+      // needs the room far more, to stay scannable - gets first claim on
+      // the vertical space available at the top of the header.
       const code = `${baseCode}-A-${pageNum}`;
-      const codeStr = `Code: ${code}`;
-      const codeWidth = helvetica.widthOfTextAtSize(codeStr, 9);
-      page.drawText(codeStr, {
-        x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 36, size: 9, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
-      });
 
-      // Answer-key QR, worksheet pages only, right under the matching code -
-      // scanning it opens a plain-text answer list (js/answers-viewer.js)
-      // instead of needing the separate answer-key PDF/page. Kept up in the
-      // header (not the bottom margin) so it can't get smudged by a student
-      // writing near the bottom of the page. Only the target-script answers
-      // are sent (no prompt half) in grid reading order (left-to-right,
-      // top-to-bottom, matching how the grid itself reads) - every kana
-      // character is 3 UTF-8 bytes, so dropping the redundant prompt half
-      // roughly halves the payload, which matters far more for scannability
-      // here than for the math tool's plain-ASCII digits. Sized to its
-      // actual module count (see sizeQrForData() in pdf-common.js), not
-      // just guessed from string length, and skipped entirely if even the
-      // max available size can't keep its modules legibly large - a QR a
-      // phone can't focus on is worse than no QR.
+      // Answer-key QR, worksheet pages only, anchored at the very top of
+      // the header (right of the title) - scanning it opens a plain-text
+      // answer list (js/answers-viewer.js) instead of needing the separate
+      // answer-key PDF/page. Kept up here (not the bottom margin) so it
+      // can't get smudged by a student writing near the bottom of the
+      // page, and given first claim on the header's vertical space rather
+      // than being squeezed under the code text, which previously left it
+      // touching the grid on denser worksheets. Only the target-script
+      // answers are sent (no prompt half) in grid reading order
+      // (left-to-right, top-to-bottom, matching how the grid itself reads)
+      // - every kana character is 3 UTF-8 bytes, so dropping the redundant
+      // prompt half roughly halves the payload, which matters far more for
+      // scannability here than for the math tool's plain-ASCII digits.
+      // Sized to its actual module count (see sizeQrForData() in
+      // pdf-common.js), not just guessed from string length, and skipped
+      // entirely if even the max available size can't keep its modules
+      // legibly large - a QR a phone can't focus on is worse than no QR.
+      const qrTop = PDF_PAGE.HEIGHT - 34;
+      let qrBottom = qrTop;
       if (!isAnswerKey && this.config.include_answer_qr !== false) {
         const answers = [];
         gridData.forEach((row) => row.forEach((item) => {
@@ -532,14 +533,21 @@ class PDFWorksheetRenderer {
         }));
         const url = buildAnswerQrUrl({ c: code, t: baseTitle, a: answers.join(',') });
         try {
-          const fit = sizeQrForData(url, 'L');
+          const fit = sizeQrForData(url, 'L', { maxSize: 64 });
           if (fit) {
-            drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - fit.size, PDF_PAGE.HEIGHT - 44 - fit.size, fit.size, 'L');
+            qrBottom = qrTop - fit.size;
+            drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - fit.size, qrBottom, fit.size, 'L');
           }
         } catch (e) {
           console.warn('Answer QR code unavailable:', e);
         }
       }
+
+      const codeStr = `Code: ${code}`;
+      const codeWidth = helvetica.widthOfTextAtSize(codeStr, 8);
+      page.drawText(codeStr, {
+        x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: qrBottom - 12, size: 8, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
+      });
 
       page.drawText(jpTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 52, size: 11, font: notoSansJP });
       page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 66, size: 9, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
