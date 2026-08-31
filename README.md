@@ -1,4 +1,4 @@
-# Ys School Worksheet Generators
+# Ys Learning Lab Worksheet Generators
 
 Static, no-build homeschool worksheet site. Everything runs client-side:
 HTML5 + Tailwind CSS (CDN) + vanilla JS + [pdf-lib](https://pdf-lib.js.org/) (CDN)
