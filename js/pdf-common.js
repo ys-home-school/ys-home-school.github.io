@@ -83,6 +83,31 @@ function drawLineSeg(page, x1, y1, x2, y2, width = 1, dashArray = undefined, col
   });
 }
 
+// Draws a QR code as plain filled rectangles (vector, not a raster image) -
+// consistent with how everything else in these renderers is hand-drawn, and
+// avoids needing to embed/generate a PNG. Requires the qrcode-generator CDN
+// script (global `qrcode()`) to be loaded on the page. `x`/`y` is the
+// bottom-left corner, `size` is the full QR code's width/height in points.
+function drawQrCode(page, text, x, y, size) {
+  const qr = qrcode(0, 'M'); // typeNumber 0 = auto-select smallest that fits
+  qr.addData(text);
+  qr.make();
+  const moduleCount = qr.getModuleCount();
+  const cellSize = size / moduleCount;
+  for (let row = 0; row < moduleCount; row++) {
+    for (let col = 0; col < moduleCount; col++) {
+      if (!qr.isDark(row, col)) continue;
+      page.drawRectangle({
+        x: x + col * cellSize,
+        y: y + size - (row + 1) * cellSize, // QR rows go top-to-bottom; PDF y goes bottom-to-top
+        width: cellSize,
+        height: cellSize,
+        color: PDFLib.rgb(0, 0, 0),
+      });
+    }
+  }
+}
+
 function drawTextAt(page, text, x, y, font, size, color = PDFLib.rgb(0, 0, 0)) {
   page.drawText(text, { x, y, size, font, color });
 }

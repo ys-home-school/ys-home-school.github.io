@@ -624,6 +624,12 @@ class MathPDFRenderer {
     page.drawText(footerText, {
       x: PDF_PAGE.WIDTH / 2 - footerWidth / 2, y: 28, size: 10, font: this.fonts.helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
     });
+
+    try {
+      drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 6, 32);
+    } catch (e) {
+      console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
+    }
   }
 
   async renderCombined() {

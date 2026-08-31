@@ -556,6 +556,12 @@ class PDFWorksheetRenderer {
         const offset = PDF_PAGE.MARGIN + enSettings.length * 3.1;
         page.drawText(alwaysStr, { x: offset, y: 14, size: 6, font: notoSansJP, color: PDFLib.rgb(0.5, 0.5, 0.5) });
       }
+
+      try {
+        drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 6, 32);
+      } catch (e) {
+        console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
+      }
     });
   }
 }

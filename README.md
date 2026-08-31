@@ -106,4 +106,17 @@ No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 - Problem index numbers ("1.", "2.") are rendered in Times-Bold (matching the Python renderer's "F3" font) in
   both the PDF and the live HTML preview (`.worksheet-index` in `assets/css/site.css`), so they're never
   confused with equation digits.
+- Every generated PDF gets a small "Powered by Ys Learning Lab" footer line plus a QR code (bottom-right,
+  `drawQrCode()` in `js/pdf-common.js`) linking back to the site's homepage - drawn as plain filled rectangles
+  from the [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) CDN library's module matrix,
+  not a raster image, consistent with how everything else in these renderers is hand-drawn. Wrapped in a
+  try/catch so a CDN hiccup degrades to "no QR code" rather than breaking generation.
+
+## Cache-busting local script/style changes
+
+Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
+that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
+version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
+per-file-type, not global: all `js/*.js` references share one number (`?v=2` currently), `site.css` has its own
+(`?v=7` currently) - bump whichever group you actually touched.
 
