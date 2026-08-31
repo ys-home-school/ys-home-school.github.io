@@ -41,8 +41,9 @@ directly via `file://` also works since there's no backend.
 The site is linked to AdSense (publisher `ca-pub-6130154285914649`, verified via the `<script>` tag in every
 page's `<head>` and `/ads.txt` at the site root).
 
-`results.html` keeps the original layout:
-- `#ad-slot-top-leaderboard` (728x90-ish leaderboard, full width) - **live**, AdSense ad unit slot `7285905093`.
+`results.html`:
+- `#ad-slot-bottom-leaderboard` (728x90-ish leaderboard) - **live**, AdSense ad unit slot `7285905093`. Placed
+  below the viewer rather than above it, so a visitor doesn't hit an ad before the worksheet they came for.
 - `#ad-slot-sidebar` (300x250 rectangle, next to the PDF viewer) - **live**, AdSense ad unit slot `8894500230`.
 
 `index.html` has two spots: a rectangle ad as the 4th tile in the 2x2 subject-cards grid (`#ad-slot-grid`, reuses
@@ -113,18 +114,19 @@ No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
   [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) CDN library's module matrix, not a
   raster image, consistent with how everything else in these renderers is hand-drawn. Wrapped in a try/catch so
   a CDN hiccup degrades to "no QR code" rather than breaking generation.
-- Every generated worksheet (and its matching answer key) is stamped with a worksheet-matching code
-  (`getNextWorksheetCode()` in `js/pdf-common.js`, cycling `A-1` .. `Z-50` then wrapping, persisted in
-  `localStorage` so it keeps advancing across page reloads) so a teacher printing a stack of worksheets for a
-  whole class can pair each student's worksheet back to its answer key by eye. If one "Generate" click produces
-  multiple pages, each page gets a `-N` suffix (e.g. `A-7-1`, `A-7-2`) and the same per-page code appears on
-  both the worksheet page and its corresponding answer-key page. The counter is shared between the math and
-  Japanese tools so a mixed print run never collides.
-- Every worksheet header also has Name/Date and Teacher/Class fill-in lines for students to fill in before
-  turning a sheet in. On the Japanese tool these are English-only (Helvetica) even though the sheet is
-  otherwise bilingual, specifically to avoid needing to re-run the offline Noto Sans JP subsetting pipeline for
-  new kanji. The header is a compact 3-4 line block (`PDF_PAGE.HEADER_HEIGHT = 125`) with a small title line
-  instead of the original oversized heading, to leave more of the page for the actual worksheet grid.
+- Every generated worksheet (and its matching answer key) is stamped with a worksheet-matching code, e.g.
+  `XRGD0831-A-1` (`getWorksheetBatchCode()` in `js/pdf-common.js`) - 4 random uppercase letters plus today's
+  date (`MMDD`), freshly generated per "Generate" click, with a `-A-N` page suffix. Embedding the date means a
+  code from one day's print run can never be confused with a code from a different day using the same settings
+  (a real classroom scenario: the same worksheet config run daily would otherwise print the same code every
+  time). The same per-page code appears on both the worksheet page and its corresponding answer-key page so a
+  teacher can pair a stack of student worksheets to their answer keys by eye.
+- Every worksheet header also has Name/Date/Teacher/Class fill-in lines for students to fill in before turning
+  a sheet in - except the answer-key pages, which drop Name/Date/Class (the teacher doesn't need those on their
+  own key) and keep only the Teacher line. On the Japanese tool these are English-only (Helvetica) even though
+  the sheet is otherwise bilingual, specifically to avoid needing to re-run the offline Noto Sans JP subsetting
+  pipeline for new kanji. The header is a compact 3-4 line block (`PDF_PAGE.HEADER_HEIGHT = 125`) with a small
+  title line instead of the original oversized heading, to leave more of the page for the actual worksheet grid.
 - The worksheet title and teacher name are editable form fields (`#cfg-title`/`#cfg-teacher` on both
   math.html and japanese.html, threaded through as `config.title`/`config.teacher`) instead of hardcoded text -
   Title defaults to "Math Practice Test" / "Kana Practice Test" and is printed as-is (with " - Answer Key"
@@ -140,6 +142,6 @@ No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=3` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=5` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

@@ -454,7 +454,7 @@ class PDFWorksheetRenderer {
   async renderCombined() {
     const pdfDoc = await PDFLib.PDFDocument.create();
     this.fonts = await getFonts(pdfDoc);
-    const baseCode = getNextWorksheetCode();
+    const baseCode = getWorksheetBatchCode();
     this._renderInto(pdfDoc, false, baseCode);
     if (this.config.include_answer_key !== false) this._renderInto(pdfDoc, true, baseCode);
     return pdfDoc.save();
@@ -463,7 +463,7 @@ class PDFWorksheetRenderer {
   async render(isAnswerKey = false) {
     const pdfDoc = await PDFLib.PDFDocument.create();
     this.fonts = await getFonts(pdfDoc);
-    const baseCode = getNextWorksheetCode();
+    const baseCode = getWorksheetBatchCode();
     this._renderInto(pdfDoc, isAnswerKey, baseCode);
     return pdfDoc.save();
   }
@@ -500,9 +500,9 @@ class PDFWorksheetRenderer {
       const baseTitle = (this.config.title || 'Kana Practice Test').trim() || 'Kana Practice Test';
       page.drawText(baseTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 36, size: 13, font: helvetica });
 
-      // Worksheet-matching code (e.g. "A-7", or "A-7-2" across multiple pages)
-      // - same code on the worksheet page and its matching answer-key page.
-      const code = totalPages > 1 ? `${baseCode}-${pageNum}` : baseCode;
+      // Worksheet-matching code, e.g. "XRGD0831-A-1" - same code on the
+      // worksheet page and its matching answer-key page (same pageNum).
+      const code = `${baseCode}-A-${pageNum}`;
       const codeStr = `Code: ${code}`;
       const codeWidth = helvetica.widthOfTextAtSize(codeStr, 11);
       page.drawText(codeStr, {
@@ -513,12 +513,16 @@ class PDFWorksheetRenderer {
       page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 66, size: 9, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
 
       const teacherName = (this.config.teacher || '').trim();
-      page.drawText('名前 (Name): _________________', {
-        x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 84, size: 11, font: notoSansJP,
-      });
-      page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 84, size: 11, font: helvetica });
-      page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 100, size: 11, font: helvetica });
-      page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 100, size: 11, font: helvetica });
+      if (isAnswerKey) {
+        page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 84, size: 11, font: helvetica });
+      } else {
+        page.drawText('名前 (Name): _________________', {
+          x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 84, size: 11, font: notoSansJP,
+        });
+        page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 84, size: 11, font: helvetica });
+        page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 100, size: 11, font: helvetica });
+        page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 100, size: 11, font: helvetica });
+      }
 
       const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
 

@@ -11,28 +11,20 @@ const PDF_PAGE = {
   HEADER_HEIGHT: 125,
 };
 
-// Sequential worksheet-matching code (A-1 .. Z-50, then wraps), shared across
-// both tools so a teacher printing a mix of math and Japanese worksheets for
-// one class never gets a collision. Persisted in localStorage so it keeps
-// advancing across page reloads within a session; each call to
-// getNextWorksheetCode() represents one full "Generate" click.
-function getNextWorksheetCode() {
-  const KEY = 'ysll.worksheetCodeCounter';
-  let counter = 0;
-  try {
-    counter = parseInt(localStorage.getItem(KEY), 10) || 0;
-  } catch (e) {
-    // localStorage unavailable (private mode, etc.) - fall back to always A-1.
-  }
-  const letterIndex = Math.floor(counter / 50) % 26;
-  const number = (counter % 50) + 1;
-  const code = `${String.fromCharCode(65 + letterIndex)}-${number}`;
-  try {
-    localStorage.setItem(KEY, String(counter + 1));
-  } catch (e) {
-    // Non-fatal - the code just won't advance next time.
-  }
-  return code;
+// Worksheet-matching "print code" for one full "Generate" click - 4 random
+// uppercase letters plus today's date (MMDD), e.g. "XRGD0831". Every page
+// produced by that click (worksheet and matching answer key alike) is
+// stamped with this same code, so a teacher can pair up a stack of student
+// worksheets to their answer keys by eye. Embedding the date means a code
+// from one day's print run can never be visually confused with a code from
+// another day's run using the same settings (a real classroom scenario -
+// "the same A-1 sheet every day"), unlike a plain incrementing counter.
+function getWorksheetBatchCode() {
+  let letters = '';
+  for (let i = 0; i < 4; i++) letters += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+  const d = new Date();
+  const mmdd = String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  return `${letters}${mmdd}`;
 }
 
 let _fontCache = null;

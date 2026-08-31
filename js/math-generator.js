@@ -609,17 +609,16 @@ class MathPDFRenderer {
     return `Layout: ${cfg.rows}x${cfg.columns} | Pages: ${cfg.num_pages} | Mode: ${opsStr} | Randomized: ${cfg.randomize_order}`;
   }
 
-  _renderPageContent(page, problems, isAnswerKey, baseCode, pageNum, totalPages) {
+  _renderPageContent(page, problems, isAnswerKey, baseCode, pageNum) {
     const { helvetica } = this.fonts;
     const baseTitle = (this.config.title || 'Math Practice Test').trim() || 'Math Practice Test';
     const title = isAnswerKey ? `${baseTitle} - Answer Key` : baseTitle;
     page.drawText(title, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 40, size: 14, font: helvetica });
 
-    // Worksheet-matching code (e.g. "A-7", or "A-7-2" when this generation
-    // spans multiple pages) - same code on the worksheet page and its
-    // matching answer-key page, so a teacher can pair up printed sheets for
-    // a whole class by eye.
-    const code = totalPages > 1 ? `${baseCode}-${pageNum}` : baseCode;
+    // Worksheet-matching code, e.g. "XRGD0831-A-1" - same code on the
+    // worksheet page and its matching answer-key page (same pageNum), so a
+    // teacher can pair up printed sheets for a whole class by eye.
+    const code = `${baseCode}-A-${pageNum}`;
     const codeStr = `Code: ${code}`;
     const codeWidth = helvetica.widthOfTextAtSize(codeStr, 11);
     page.drawText(codeStr, {
@@ -627,10 +626,14 @@ class MathPDFRenderer {
     });
 
     const teacherName = (this.config.teacher || '').trim();
-    page.drawText('Name: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
-    page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
-    page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 82, size: 12, font: helvetica });
-    page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 82, size: 12, font: helvetica });
+    if (isAnswerKey) {
+      page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
+    } else {
+      page.drawText('Name: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
+      page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
+      page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 82, size: 12, font: helvetica });
+      page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 82, size: 12, font: helvetica });
+    }
 
     const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
     problems.forEach((prob, i) => {
@@ -672,16 +675,15 @@ class MathPDFRenderer {
   async renderCombined() {
     const pdfDoc = await PDFLib.PDFDocument.create();
     this.fonts = await getBaseFonts(pdfDoc);
-    const baseCode = getNextWorksheetCode();
-    const totalPages = this.pages.length;
+    const baseCode = getWorksheetBatchCode();
     this.pages.forEach((problems, idx) => {
       const page = pdfDoc.addPage([PDF_PAGE.WIDTH, PDF_PAGE.HEIGHT]);
-      this._renderPageContent(page, problems, false, baseCode, idx + 1, totalPages);
+      this._renderPageContent(page, problems, false, baseCode, idx + 1);
     });
     if (this.config.include_answer_key !== false) {
       this.pages.forEach((problems, idx) => {
         const page = pdfDoc.addPage([PDF_PAGE.WIDTH, PDF_PAGE.HEIGHT]);
-        this._renderPageContent(page, problems, true, baseCode, idx + 1, totalPages);
+        this._renderPageContent(page, problems, true, baseCode, idx + 1);
       });
     }
     return pdfDoc.save();

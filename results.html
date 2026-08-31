@@ -24,17 +24,6 @@
   </nav>
 </header>
 
-<!-- Top leaderboard ad slot (AdSense unit: Leaderboard - top). -->
-<div id="ad-slot-top-leaderboard" class="w-full h-[90px] overflow-hidden max-w-6xl mx-auto mt-4">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-6130154285914649"
-       data-ad-slot="7285905093"
-       data-ad-format="horizontal"
-       data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
-
 <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-4">
 
   <!-- EMPTY / EXPIRED STATE -->
@@ -49,10 +38,9 @@
   <div id="viewer-shell" class="hidden">
     <div class="flex items-center justify-between mb-3">
       <a id="back-link" href="index.html" class="text-sm font-semibold text-indigo-700 hover:underline">&larr; Back</a>
-      <a href="index.html" class="text-sm font-semibold text-indigo-700 hover:underline hidden md:inline">Generate another worksheet</a>
     </div>
 
-    <div class="flex flex-col md:grid md:grid-cols-[64px_1fr_300px] gap-4 items-start">
+    <div class="flex flex-col md:grid md:grid-cols-[110px_1fr_300px] gap-4 items-start">
 
       <!-- THUMBNAIL RAIL -->
       <div id="thumbs-container" class="order-3 md:order-1 hidden md:flex md:flex-col md:overflow-y-auto md:max-h-[75vh] w-full"></div>
@@ -71,7 +59,7 @@
             <button id="download-btn" type="button" class="btn-key btn-key-sm btn-key-primary">Download</button>
           </div>
         </div>
-        <div id="viewer-scroll" class="overflow-y-auto max-h-[75vh] p-4 bg-[#dde1e6]">
+        <div id="viewer-scroll" class="overflow-auto max-h-[75vh] p-4 bg-[#dde1e6]">
           <div id="pages-container"></div>
         </div>
       </div>
@@ -89,6 +77,19 @@
       </div>
 
     </div>
+
+    <!-- Leaderboard ad slot (AdSense unit: Leaderboard - top), moved below the
+         viewer so it never sits between the page load and the worksheet the
+         visitor actually came here for. -->
+    <div id="ad-slot-bottom-leaderboard" class="w-full h-[90px] overflow-hidden mt-6 mx-auto max-w-3xl">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-6130154285914649"
+           data-ad-slot="7285905093"
+           data-ad-format="horizontal"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
   </div>
 </main>
 
@@ -101,7 +102,7 @@
 <!-- Hidden iframe purely to drive native browser PDF printing (more reliable than printing the on-screen canvases). -->
 <iframe id="print-frame" class="hidden" title="Print"></iframe>
 
-<script src="js/pdf-common.js?v=4"></script>
-<script type="module" src="js/pdf-viewer.js?v=4"></script>
+<script src="js/pdf-common.js?v=5"></script>
+<script type="module" src="js/pdf-viewer.js?v=5"></script>
 </body>
 </html>

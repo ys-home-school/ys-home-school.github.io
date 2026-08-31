@@ -8,7 +8,7 @@ import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.3.289
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.3.289/pdf.worker.min.mjs';
 
-let currentZoom = 1.2;
+let currentZoom = 1.0;
 let currentBytes = null;
 let currentFilename = 'worksheet.pdf';
 let printUrl = null;
@@ -54,7 +54,7 @@ async function renderPdf() {
     const thumbCanvas = document.createElement('canvas');
     thumbCanvas.width = thumbViewport.width;
     thumbCanvas.height = thumbViewport.height;
-    thumbCanvas.className = 'border-2 border-stone-400 hover:border-indigo-500 rounded-md cursor-pointer mb-2 mx-auto block bg-white';
+    thumbCanvas.className = 'border-2 border-stone-400 hover:border-indigo-500 rounded-md cursor-pointer mb-2 mx-auto block bg-white max-w-full h-auto';
     thumbCanvas.title = `Page ${i}`;
     await page.render({ canvasContext: thumbCanvas.getContext('2d'), viewport: thumbViewport }).promise;
     thumbCanvas.addEventListener('click', () => canvas.scrollIntoView({ behavior: 'smooth', block: 'start' }));
