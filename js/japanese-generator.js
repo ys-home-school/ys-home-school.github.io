@@ -454,19 +454,21 @@ class PDFWorksheetRenderer {
   async renderCombined() {
     const pdfDoc = await PDFLib.PDFDocument.create();
     this.fonts = await getFonts(pdfDoc);
-    this._renderInto(pdfDoc, false);
-    if (this.config.include_answer_key !== false) this._renderInto(pdfDoc, true);
+    const baseCode = getNextWorksheetCode();
+    this._renderInto(pdfDoc, false, baseCode);
+    if (this.config.include_answer_key !== false) this._renderInto(pdfDoc, true, baseCode);
     return pdfDoc.save();
   }
 
   async render(isAnswerKey = false) {
     const pdfDoc = await PDFLib.PDFDocument.create();
     this.fonts = await getFonts(pdfDoc);
-    this._renderInto(pdfDoc, isAnswerKey);
+    const baseCode = getNextWorksheetCode();
+    this._renderInto(pdfDoc, isAnswerKey, baseCode);
     return pdfDoc.save();
   }
 
-  _renderInto(pdfDoc, isAnswerKey) {
+  _renderInto(pdfDoc, isAnswerKey, baseCode) {
     const { helvetica, notoSansJP } = this.fonts;
 
     let jpTitle, enTitle;
@@ -499,10 +501,24 @@ class PDFWorksheetRenderer {
         x: PDF_PAGE.WIDTH / 2 - this._getCenterOffsetJp(jpTitle, 20, notoSansJP),
         y: PDF_PAGE.HEIGHT - 50, size: 20, font: notoSansJP,
       });
-      page.drawText('名前 (Name): _________________', {
-        x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 160, y: PDF_PAGE.HEIGHT - 80, size: 12, font: notoSansJP,
+
+      // Worksheet-matching code (e.g. "A-7", or "A-7-2" across multiple pages)
+      // - same code on the worksheet page and its matching answer-key page.
+      const code = totalPages > 1 ? `${baseCode}-${pageNum}` : baseCode;
+      const codeStr = `Code: ${code}`;
+      const codeWidth = helvetica.widthOfTextAtSize(codeStr, 12);
+      page.drawText(codeStr, {
+        x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 50, size: 12, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
       });
-      page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 80, size: 12, font: helvetica });
+
+      page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 72, size: 12, font: helvetica });
+
+      page.drawText('名前 (Name): _________________', {
+        x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 94, size: 12, font: notoSansJP,
+      });
+      page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 94, size: 12, font: helvetica });
+      page.drawText('Teacher: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
+      page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
 
       const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
 
@@ -558,7 +574,7 @@ class PDFWorksheetRenderer {
       }
 
       try {
-        drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 6, 32);
+        drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 20, 32);
       } catch (e) {
         console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
       }

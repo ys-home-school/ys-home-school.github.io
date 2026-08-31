@@ -6,8 +6,35 @@ const PDF_PAGE = {
   WIDTH: 595.28,
   HEIGHT: 841.89,
   MARGIN: 40,
-  HEADER_HEIGHT: 100,
+  // Bumped from 100 to fit the Name/Teacher/Class/Date rows added below the
+  // title on every worksheet, on top of whatever title/instruction line was
+  // already there.
+  HEADER_HEIGHT: 150,
 };
+
+// Sequential worksheet-matching code (A-1 .. Z-50, then wraps), shared across
+// both tools so a teacher printing a mix of math and Japanese worksheets for
+// one class never gets a collision. Persisted in localStorage so it keeps
+// advancing across page reloads within a session; each call to
+// getNextWorksheetCode() represents one full "Generate" click.
+function getNextWorksheetCode() {
+  const KEY = 'ysll.worksheetCodeCounter';
+  let counter = 0;
+  try {
+    counter = parseInt(localStorage.getItem(KEY), 10) || 0;
+  } catch (e) {
+    // localStorage unavailable (private mode, etc.) - fall back to always A-1.
+  }
+  const letterIndex = Math.floor(counter / 50) % 26;
+  const number = (counter % 50) + 1;
+  const code = `${String.fromCharCode(65 + letterIndex)}-${number}`;
+  try {
+    localStorage.setItem(KEY, String(counter + 1));
+  } catch (e) {
+    // Non-fatal - the code just won't advance next time.
+  }
+  return code;
+}
 
 let _fontCache = null;
 

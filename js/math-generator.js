@@ -597,10 +597,26 @@ class MathPDFRenderer {
     }
   }
 
-  _renderPageContent(page, problems, isAnswerKey) {
+  _renderPageContent(page, problems, isAnswerKey, baseCode, pageNum, totalPages) {
+    const { helvetica } = this.fonts;
     const title = isAnswerKey ? 'Math Answer Key' : 'Math Practice Sheet';
-    page.drawText(title, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 50, size: 20, font: this.fonts.helvetica });
-    page.drawText('Name: _________________', { x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 150, y: PDF_PAGE.HEIGHT - 50, size: 12, font: this.fonts.helvetica });
+    page.drawText(title, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 50, size: 20, font: helvetica });
+
+    // Worksheet-matching code (e.g. "A-7", or "A-7-2" when this generation
+    // spans multiple pages) - same code on the worksheet page and its
+    // matching answer-key page, so a teacher can pair up printed sheets for
+    // a whole class by eye.
+    const code = totalPages > 1 ? `${baseCode}-${pageNum}` : baseCode;
+    const codeStr = `Code: ${code}`;
+    const codeWidth = helvetica.widthOfTextAtSize(codeStr, 12);
+    page.drawText(codeStr, {
+      x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 50, size: 12, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
+    });
+
+    page.drawText('Name: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 94, size: 12, font: helvetica });
+    page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 94, size: 12, font: helvetica });
+    page.drawText('Teacher: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
+    page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
 
     const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
     problems.forEach((prob, i) => {
@@ -626,7 +642,7 @@ class MathPDFRenderer {
     });
 
     try {
-      drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 6, 32);
+      drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 20, 32);
     } catch (e) {
       console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
     }
@@ -635,15 +651,17 @@ class MathPDFRenderer {
   async renderCombined() {
     const pdfDoc = await PDFLib.PDFDocument.create();
     this.fonts = await getBaseFonts(pdfDoc);
-    for (const problems of this.pages) {
+    const baseCode = getNextWorksheetCode();
+    const totalPages = this.pages.length;
+    this.pages.forEach((problems, idx) => {
       const page = pdfDoc.addPage([PDF_PAGE.WIDTH, PDF_PAGE.HEIGHT]);
-      this._renderPageContent(page, problems, false);
-    }
+      this._renderPageContent(page, problems, false, baseCode, idx + 1, totalPages);
+    });
     if (this.config.include_answer_key !== false) {
-      for (const problems of this.pages) {
+      this.pages.forEach((problems, idx) => {
         const page = pdfDoc.addPage([PDF_PAGE.WIDTH, PDF_PAGE.HEIGHT]);
-        this._renderPageContent(page, problems, true);
-      }
+        this._renderPageContent(page, problems, true, baseCode, idx + 1, totalPages);
+      });
     }
     return pdfDoc.save();
   }

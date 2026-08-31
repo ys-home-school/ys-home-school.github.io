@@ -106,17 +106,30 @@ No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 - Problem index numbers ("1.", "2.") are rendered in Times-Bold (matching the Python renderer's "F3" font) in
   both the PDF and the live HTML preview (`.worksheet-index` in `assets/css/site.css`), so they're never
   confused with equation digits.
-- Every generated PDF gets a small "Powered by Ys Learning Lab" footer line plus a QR code (bottom-right,
-  `drawQrCode()` in `js/pdf-common.js`) linking back to the site's homepage - drawn as plain filled rectangles
-  from the [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) CDN library's module matrix,
-  not a raster image, consistent with how everything else in these renderers is hand-drawn. Wrapped in a
-  try/catch so a CDN hiccup degrades to "no QR code" rather than breaking generation.
+- Every generated PDF gets a small "Powered by Ys Learning Lab" footer line plus a QR code (bottom-right, at
+  `y=20` so it clears the paper edge even on printers with a tight unprintable margin - a partially-clipped QR
+  code is unscannable, unlike text, which degrades more gracefully; `drawQrCode()` in `js/pdf-common.js`)
+  linking back to the site's homepage - drawn as plain filled rectangles from the
+  [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) CDN library's module matrix, not a
+  raster image, consistent with how everything else in these renderers is hand-drawn. Wrapped in a try/catch so
+  a CDN hiccup degrades to "no QR code" rather than breaking generation.
+- Every generated worksheet (and its matching answer key) is stamped with a worksheet-matching code
+  (`getNextWorksheetCode()` in `js/pdf-common.js`, cycling `A-1` .. `Z-50` then wrapping, persisted in
+  `localStorage` so it keeps advancing across page reloads) so a teacher printing a stack of worksheets for a
+  whole class can pair each student's worksheet back to its answer key by eye. If one "Generate" click produces
+  multiple pages, each page gets a `-N` suffix (e.g. `A-7-1`, `A-7-2`) and the same per-page code appears on
+  both the worksheet page and its corresponding answer-key page. The counter is shared between the math and
+  Japanese tools so a mixed print run never collides.
+- Every worksheet header also has Name/Date and Teacher/Class fill-in lines for students to fill in before
+  turning a sheet in. On the Japanese tool these are English-only (Helvetica) even though the sheet is
+  otherwise bilingual, specifically to avoid needing to re-run the offline Noto Sans JP subsetting pipeline for
+  new kanji.
 
 ## Cache-busting local script/style changes
 
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=2` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=3` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 
