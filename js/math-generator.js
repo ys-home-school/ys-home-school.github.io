@@ -597,10 +597,23 @@ class MathPDFRenderer {
     }
   }
 
+  _settingsSummary() {
+    const cfg = this.config;
+    let opsStr = cfg.mode;
+    if (cfg.mode === 'standard' && cfg.ops) {
+      const enabled = Object.entries(cfg.ops)
+        .filter(([, op]) => op.enabled)
+        .map(([sym, op]) => `${sym}${op.weight}%`);
+      if (enabled.length) opsStr = `standard (${enabled.join(' ')})`;
+    }
+    return `Layout: ${cfg.rows}x${cfg.columns} | Pages: ${cfg.num_pages} | Mode: ${opsStr} | Randomized: ${cfg.randomize_order}`;
+  }
+
   _renderPageContent(page, problems, isAnswerKey, baseCode, pageNum, totalPages) {
     const { helvetica } = this.fonts;
-    const title = isAnswerKey ? 'Math Answer Key' : 'Math Practice Sheet';
-    page.drawText(title, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 50, size: 20, font: helvetica });
+    const baseTitle = (this.config.title || 'Math Practice Test').trim() || 'Math Practice Test';
+    const title = isAnswerKey ? `${baseTitle} - Answer Key` : baseTitle;
+    page.drawText(title, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 40, size: 14, font: helvetica });
 
     // Worksheet-matching code (e.g. "A-7", or "A-7-2" when this generation
     // spans multiple pages) - same code on the worksheet page and its
@@ -608,15 +621,16 @@ class MathPDFRenderer {
     // a whole class by eye.
     const code = totalPages > 1 ? `${baseCode}-${pageNum}` : baseCode;
     const codeStr = `Code: ${code}`;
-    const codeWidth = helvetica.widthOfTextAtSize(codeStr, 12);
+    const codeWidth = helvetica.widthOfTextAtSize(codeStr, 11);
     page.drawText(codeStr, {
-      x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 50, size: 12, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
+      x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 40, size: 11, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
     });
 
-    page.drawText('Name: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 94, size: 12, font: helvetica });
-    page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 94, size: 12, font: helvetica });
-    page.drawText('Teacher: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
-    page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
+    const teacherName = (this.config.teacher || '').trim();
+    page.drawText('Name: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
+    page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 62, size: 12, font: helvetica });
+    page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 82, size: 12, font: helvetica });
+    page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 82, size: 12, font: helvetica });
 
     const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
     problems.forEach((prob, i) => {
@@ -635,11 +649,18 @@ class MathPDFRenderer {
       }
     });
 
-    const footerText = 'Powered by Ys Learning Lab';
+    const docType = isAnswerKey ? 'ANSWER KEY' : 'PRACTICE SHEET';
+    const footerText = `Powered by Ys Learning Lab - ${docType}`;
     const footerWidth = this.fonts.helvetica.widthOfTextAtSize(footerText, 10);
     page.drawText(footerText, {
       x: PDF_PAGE.WIDTH / 2 - footerWidth / 2, y: 28, size: 10, font: this.fonts.helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
     });
+
+    if (this.config.show_settings_footer) {
+      page.drawText(this._settingsSummary(), {
+        x: PDF_PAGE.MARGIN, y: 14, size: 6, font: this.fonts.helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
+      });
+    }
 
     try {
       drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 20, 32);

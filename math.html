@@ -48,6 +48,14 @@
         <p class="text-[11px] text-stone-500 mt-2">Levels 3-6 cycle through two variants on repeat clicks (e.g. Level 3: multiplication/division fluency &rarr; multi-step problems). Covers arithmetic, mixed expressions, and simple equations only &mdash; this tool doesn't generate fractions, geometry, money, or ratio problems.</p>
       </fieldset>
 
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Worksheet title (printed on the sheet)
+          <input id="cfg-title" type="text" value="Math Practice Test" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 mt-1" />
+        </label>
+        <label class="block text-sm font-medium">Teacher (leave blank for a fill-in line)
+          <input id="cfg-teacher" type="text" value="" placeholder="e.g. Mrs. Smith" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 mt-1" />
+        </label>
+      </div>
       <div class="flex items-center gap-2 mb-4">
         <label class="text-sm font-medium">Rows
           <input id="cfg-rows" type="number" min="1" max="25" value="4" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
@@ -62,8 +70,11 @@
       <label class="flex items-center gap-2 text-sm mb-2">
         <input id="cfg-randorder" type="checkbox" checked class="h-4 w-4" /> Randomize problem order
       </label>
-      <label class="flex items-center gap-2 text-sm mb-4">
+      <label class="flex items-center gap-2 text-sm mb-2">
         <input id="cfg-answerkey" type="checkbox" checked class="h-4 w-4" /> Include answer key page(s)
+      </label>
+      <label class="flex items-center gap-2 text-sm mb-4">
+        <input id="cfg-footer" type="checkbox" checked class="h-4 w-4" /> Print settings footer on PDF
       </label>
 
       <div class="flex gap-2 mb-4">
@@ -258,8 +269,8 @@
   </div>
 </footer>
 
-<script src="js/pdf-common.js?v=3"></script>
-<script src="js/math-generator.js?v=3"></script>
-<script src="js/math-ui.js?v=3"></script>
+<script src="js/pdf-common.js?v=4"></script>
+<script src="js/math-generator.js?v=4"></script>
+<script src="js/math-ui.js?v=4"></script>
 </body>
 </html>

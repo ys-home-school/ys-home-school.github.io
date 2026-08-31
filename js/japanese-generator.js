@@ -497,28 +497,28 @@ class PDFWorksheetRenderer {
       const pageNum = pageIdx + 1;
       const page = pdfDoc.addPage([PDF_PAGE.WIDTH, PDF_PAGE.HEIGHT]);
 
-      page.drawText(jpTitle, {
-        x: PDF_PAGE.WIDTH / 2 - this._getCenterOffsetJp(jpTitle, 20, notoSansJP),
-        y: PDF_PAGE.HEIGHT - 50, size: 20, font: notoSansJP,
-      });
+      const baseTitle = (this.config.title || 'Kana Practice Test').trim() || 'Kana Practice Test';
+      page.drawText(baseTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 36, size: 13, font: helvetica });
 
       // Worksheet-matching code (e.g. "A-7", or "A-7-2" across multiple pages)
       // - same code on the worksheet page and its matching answer-key page.
       const code = totalPages > 1 ? `${baseCode}-${pageNum}` : baseCode;
       const codeStr = `Code: ${code}`;
-      const codeWidth = helvetica.widthOfTextAtSize(codeStr, 12);
+      const codeWidth = helvetica.widthOfTextAtSize(codeStr, 11);
       page.drawText(codeStr, {
-        x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 50, size: 12, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
+        x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 36, size: 11, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
       });
 
-      page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 72, size: 12, font: helvetica });
+      page.drawText(jpTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 52, size: 11, font: notoSansJP });
+      page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 66, size: 9, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
 
+      const teacherName = (this.config.teacher || '').trim();
       page.drawText('名前 (Name): _________________', {
-        x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 94, size: 12, font: notoSansJP,
+        x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 84, size: 11, font: notoSansJP,
       });
-      page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 94, size: 12, font: helvetica });
-      page.drawText('Teacher: _________________________', { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
-      page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 114, size: 12, font: helvetica });
+      page.drawText('Date: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 84, size: 11, font: helvetica });
+      page.drawText(`Teacher: ${teacherName || '_________________________'}`, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 100, size: 11, font: helvetica });
+      page.drawText('Class: _______________', { x: 320, y: PDF_PAGE.HEIGHT - 100, size: 11, font: helvetica });
 
       const startY = PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT;
 

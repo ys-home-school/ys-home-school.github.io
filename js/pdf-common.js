@@ -6,10 +6,9 @@ const PDF_PAGE = {
   WIDTH: 595.28,
   HEIGHT: 841.89,
   MARGIN: 40,
-  // Bumped from 100 to fit the Name/Teacher/Class/Date rows added below the
-  // title on every worksheet, on top of whatever title/instruction line was
-  // already there.
-  HEADER_HEIGHT: 150,
+  // Fits a compact header: small title/code row, Name/Date row, Teacher/Class
+  // row (plus, on the Japanese sheet, one extra English instruction row).
+  HEADER_HEIGHT: 125,
 };
 
 // Sequential worksheet-matching code (A-1 .. Z-50, then wraps), shared across

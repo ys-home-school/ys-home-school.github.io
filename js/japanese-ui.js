@@ -22,6 +22,8 @@ function buildJpConfig() {
     show_settings_footer: document.getElementById('cfg-footer').checked,
     group_by_row: document.getElementById('cfg-group').checked,
     include_answer_key: document.getElementById('cfg-answerkey').checked,
+    title: document.getElementById('cfg-title').value,
+    teacher: document.getElementById('cfg-teacher').value,
   };
 }
 
@@ -124,6 +126,8 @@ function applyJpConfigToForm(cfg) {
   if (cfg.show_settings_footer != null) document.getElementById('cfg-footer').checked = cfg.show_settings_footer;
   if (cfg.group_by_row != null) document.getElementById('cfg-group').checked = cfg.group_by_row;
   if (cfg.include_answer_key != null) document.getElementById('cfg-answerkey').checked = cfg.include_answer_key;
+  if (cfg.title != null) document.getElementById('cfg-title').value = cfg.title;
+  if (cfg.teacher != null) document.getElementById('cfg-teacher').value = cfg.teacher;
   syncGroupToggleAvailability();
   syncGenerateButtonLabel();
 }
@@ -251,6 +255,8 @@ function jpConfigToIni(cfg) {
     `always_include = ${cfg.always_include}`,
     `show_settings_footer = ${cfg.show_settings_footer}`,
     `include_answer_key = ${cfg.include_answer_key}`,
+    `title = ${cfg.title || ''}`,
+    `teacher = ${cfg.teacher || ''}`,
   ];
   return lines.join('\n') + '\n';
 }
@@ -286,6 +292,8 @@ function jpConfigFromIni(text) {
       if (key === 'always_include') cfg.always_include = value;
       if (key === 'show_settings_footer') cfg.show_settings_footer = toBool(value);
       if (key === 'include_answer_key') cfg.include_answer_key = toBool(value);
+      if (key === 'title') cfg.title = value;
+      if (key === 'teacher') cfg.teacher = value;
     }
   }
   cfg.categories = categories;

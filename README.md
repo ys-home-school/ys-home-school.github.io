@@ -123,7 +123,17 @@ No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 - Every worksheet header also has Name/Date and Teacher/Class fill-in lines for students to fill in before
   turning a sheet in. On the Japanese tool these are English-only (Helvetica) even though the sheet is
   otherwise bilingual, specifically to avoid needing to re-run the offline Noto Sans JP subsetting pipeline for
-  new kanji.
+  new kanji. The header is a compact 3-4 line block (`PDF_PAGE.HEADER_HEIGHT = 125`) with a small title line
+  instead of the original oversized heading, to leave more of the page for the actual worksheet grid.
+- The worksheet title and teacher name are editable form fields (`#cfg-title`/`#cfg-teacher` on both
+  math.html and japanese.html, threaded through as `config.title`/`config.teacher`) instead of hardcoded text -
+  Title defaults to "Math Practice Test" / "Kana Practice Test" and is printed as-is (with " - Answer Key"
+  appended on the math tool's answer-key pages); Teacher prints the typed name directly when given, or falls
+  back to a blank fill-in line like Name/Date/Class when left empty. Both round-trip through INI export/import.
+- The math tool now has the same optional settings footer the Japanese tool already had
+  (`#cfg-footer` / `config.show_settings_footer`, `MathPDFRenderer._settingsSummary()` in
+  `js/math-generator.js`) - a small gray line summarizing layout/mode/randomization, and the "Powered by..."
+  footer now also states PRACTICE SHEET vs ANSWER KEY like the Japanese tool's does.
 
 ## Cache-busting local script/style changes
 

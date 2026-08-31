@@ -79,8 +79,11 @@ function buildConfig() {
   };
 
   const include_answer_key = document.getElementById('cfg-answerkey').checked;
+  const title = document.getElementById('cfg-title').value;
+  const teacher = document.getElementById('cfg-teacher').value;
+  const show_settings_footer = document.getElementById('cfg-footer').checked;
 
-  return { rows, columns, num_pages, randomize_order, combined_pdf: true, mode, ops, mixed_config, simultaneous_config, include_answer_key };
+  return { rows, columns, num_pages, randomize_order, combined_pdf: true, mode, ops, mixed_config, simultaneous_config, include_answer_key, title, teacher, show_settings_footer };
 }
 
 // Reverse of readOpConfig() - writes an OpConfig-shaped object back onto one
@@ -114,6 +117,9 @@ function applyMathConfigToForm(cfg) {
   if (cfg.num_pages != null) document.getElementById('cfg-pages').value = cfg.num_pages;
   if (cfg.randomize_order != null) document.getElementById('cfg-randorder').checked = cfg.randomize_order;
   if (cfg.include_answer_key != null) document.getElementById('cfg-answerkey').checked = cfg.include_answer_key;
+  if (cfg.title != null) document.getElementById('cfg-title').value = cfg.title;
+  if (cfg.teacher != null) document.getElementById('cfg-teacher').value = cfg.teacher;
+  if (cfg.show_settings_footer != null) document.getElementById('cfg-footer').checked = cfg.show_settings_footer;
   if (cfg.mode) setMathMode(cfg.mode);
 
   if (cfg.ops) {
@@ -335,6 +341,9 @@ function mathConfigToIni(cfg) {
     `randomize_order = ${cfg.randomize_order}`,
     `mode = ${cfg.mode}`,
     `include_answer_key = ${cfg.include_answer_key}`,
+    `title = ${cfg.title || ''}`,
+    `teacher = ${cfg.teacher || ''}`,
+    `show_settings_footer = ${cfg.show_settings_footer}`,
     '',
   ];
   for (const op of MATH_OPS) {
@@ -426,6 +435,9 @@ function mathConfigFromIni(text) {
       else if (key === 'randomize_order') cfg.randomize_order = toBool(value);
       else if (key === 'mode') cfg.mode = value;
       else if (key === 'include_answer_key') cfg.include_answer_key = toBool(value);
+      else if (key === 'title') cfg.title = value;
+      else if (key === 'teacher') cfg.teacher = value;
+      else if (key === 'show_settings_footer') cfg.show_settings_footer = toBool(value);
     } else if (section === 'MIXED') {
       if (key === 'add') cfg.mixed_config.enabled_ops['+'] = toBool(value);
       else if (key === 'sub') cfg.mixed_config.enabled_ops['-'] = toBool(value);
