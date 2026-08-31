@@ -128,10 +128,13 @@ not the encoding:
   Japanese grid used to carry no printed numbering at all, so an answers-page list read "Q1, Q2, ..." with
   nothing on the actual worksheet for a student to match it against. The cell numbers and the QR/answers-page
   numbering are the same reading-order sequence, so "Q1" on the answers page now always means the box printed
-  "1". The number sits to the *left* of the prompt by default (reusing spare horizontal room instead of eating
-  into the cell's already-tight vertical budget), but falls back to a smaller corner placement when the
-  measured prompt width (a 2-character youon prompt, or a narrow many-column grid) would leave it no room -
-  `japanese-generator.js` measures this with `notoSansJP.widthOfTextAtSize()` rather than guessing.
+  "1". The number is drawn inside the answer box's own top-left corner (the crosshair handwriting guides run
+  through the center, not the corners, so that space is otherwise unused) rather than stacked above the
+  prompt - reusing space the box already has, instead of demanding more of the cell's tight vertical budget on
+  top of the prompt and the box. The prompt is drawn slightly smaller (20pt -> 17pt) purely to buy a little
+  extra clearance above it; the answer box keeps its **exact original size** - shrinking that would make it
+  cramped to actually write a character in, so all of the accommodation for the number comes out of the prompt
+  and its own placement instead.
 - The QR is drawn at error-correction level `'L'` (least redundant) instead of the default `'M'` -  fewer
   redundant bits means a smaller QR version for the same data, which is what actually determines module count.
 - The QR's physical size is derived from its **actual module count**, not guessed from string length -
@@ -214,6 +217,6 @@ would break, and which never spells anything problematic in that order anyway.
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=12` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=13` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 

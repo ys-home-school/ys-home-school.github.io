@@ -687,30 +687,16 @@ class PDFWorksheetRenderer {
           const y = startY - rIdx * this.cellHeight;
           const centerX = x + this.cellWidth / 2;
 
+          // Prompt shrunk slightly (20pt -> 17pt) purely to buy a little
+          // vertical breathing room above it - the answer box below keeps
+          // its exact original size (min(cellWidth*0.75, cellHeight*0.6)),
+          // since shrinking *that* would make it cramped to actually write
+          // a character in.
+          const promptSize = 17;
           const promptY = y - this.cellHeight * 0.25;
-
-          // Index number sits to the *left* of the prompt, roughly at its
-          // vertical center, reusing the cell's spare horizontal room
-          // (prompt is centered, so there's slack on both sides in a normal
-          // grid) instead of needing its own line above the prompt - the
-          // cell's vertical budget is already tight (prompt + answer box),
-          // and stacking the number above it left the two touching on
-          // denser grids. A wide grid (many columns) or a 2-character youon
-          // prompt (e.g. "キャ") can eat that side gap entirely, so measure
-          // the actual rendered prompt width and fall back to a smaller,
-          // tucked-into-the-corner number rather than let it collide.
-          const idxStr = String(cellIndex);
-          const promptWidth = notoSansJP.widthOfTextAtSize(item.prompt, 20);
-          const sideGap = (this.cellWidth - promptWidth) / 2;
-          if (sideGap >= 16) {
-            page.drawText(idxStr, { x: x + 3, y: promptY - 3, size: 8, font: timesBold });
-          } else {
-            page.drawText(idxStr, { x: x + 1, y: y - 7, size: 6, font: timesBold });
-          }
-
           page.drawText(item.prompt, {
-            x: centerX - this._getCenterOffsetJp(item.prompt, 20, notoSansJP),
-            y: promptY, size: 20, font: notoSansJP,
+            x: centerX - this._getCenterOffsetJp(item.prompt, promptSize, notoSansJP),
+            y: promptY, size: promptSize, font: notoSansJP,
           });
 
           const boxSize = Math.min(this.cellWidth * 0.75, this.cellHeight * 0.6);
@@ -724,6 +710,14 @@ class PDFWorksheetRenderer {
           const dashColor = PDFLib.rgb(0.6, 0.6, 0.6);
           drawLineSeg(page, boxX, midY, boxX + boxSize, midY, 0.5, [2, 2], dashColor);
           drawLineSeg(page, midX, boxY, midX, boxY + boxSize, 0.5, [2, 2], dashColor);
+
+          // Index number tucked into the box's own top-left corner instead
+          // of stacked above the prompt - reuses space the box already has
+          // to spare (the crosshair guides run through the center, not the
+          // corners) rather than demanding more of the cell's already-tight
+          // vertical budget, which is what caused the number and prompt to
+          // visibly touch on a normal-density grid.
+          page.drawText(String(cellIndex), { x: boxX + 2, y: boxY + boxSize - 8, size: 7, font: timesBold });
 
           if (isAnswerKey) {
             const ansSize = boxSize * 0.7;
