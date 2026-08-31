@@ -509,6 +509,28 @@ class PDFWorksheetRenderer {
         x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - codeWidth, y: PDF_PAGE.HEIGHT - 36, size: 11, font: helvetica, color: PDFLib.rgb(0.3, 0.3, 0.3),
       });
 
+      // Answer-key QR, worksheet pages only, right under the matching code -
+      // scanning it opens a plain-text answer list (js/answers-viewer.js)
+      // instead of needing the separate answer-key PDF/page. Kept up in the
+      // header (not the bottom margin) so it can't get smudged by a student
+      // writing near the bottom of the page. Skipped above a size cap so a
+      // huge grid never gets forced into an unscannably dense code.
+      if (!isAnswerKey && this.config.include_answer_qr !== false) {
+        const pairs = [];
+        gridData.forEach((row) => row.forEach((item) => {
+          if (!item.is_empty) pairs.push(`${item.prompt}:${item.answer}`);
+        }));
+        const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'jp', a: pairs.join(',') });
+        if (url.length <= 900) {
+          try {
+            const qrSize = 40;
+            drawQrCode(page, url, PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - qrSize, PDF_PAGE.HEIGHT - 84, qrSize);
+          } catch (e) {
+            console.warn('Answer QR code unavailable:', e);
+          }
+        }
+      }
+
       page.drawText(jpTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 52, size: 11, font: notoSansJP });
       page.drawText(enTitle, { x: PDF_PAGE.MARGIN, y: PDF_PAGE.HEIGHT - 66, size: 9, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
 
@@ -579,28 +601,13 @@ class PDFWorksheetRenderer {
 
       try {
         drawQrCode(page, 'https://ys-learning-lab.github.io/', PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 32, 20, 32);
+        const printMoreText = 'Print more!';
+        const printMoreWidth = helvetica.widthOfTextAtSize(printMoreText, 7);
+        page.drawText(printMoreText, {
+          x: PDF_PAGE.WIDTH - PDF_PAGE.MARGIN - 16 - printMoreWidth / 2, y: 56, size: 7, font: helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5),
+        });
       } catch (e) {
         console.warn('QR code unavailable (qrcode-generator failed to load?):', e);
-      }
-
-      // Optional second QR, worksheet pages only - a parent scans straight to
-      // a plain-text answer list (js/answers-viewer.js) instead of needing
-      // the separate answer-key PDF/page. Skipped above a size cap so a huge
-      // grid never gets forced into an unscannably dense code.
-      if (!isAnswerKey && this.config.include_answer_qr !== false) {
-        const pairs = [];
-        gridData.forEach((row) => row.forEach((item) => {
-          if (!item.is_empty) pairs.push(`${item.prompt}:${item.answer}`);
-        }));
-        const url = buildAnswerQrUrl({ c: code, t: baseTitle, s: 'jp', a: pairs.join(',') });
-        if (url.length <= 900) {
-          try {
-            drawQrCode(page, url, PDF_PAGE.MARGIN, 20, 44);
-            page.drawText('Scan for answers', { x: PDF_PAGE.MARGIN, y: 66, size: 7, font: helvetica, color: PDFLib.rgb(0.5, 0.5, 0.5) });
-          } catch (e) {
-            console.warn('Answer QR code unavailable:', e);
-          }
-        }
       }
     });
   }

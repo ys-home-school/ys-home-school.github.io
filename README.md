@@ -21,8 +21,8 @@ ad script you add yourself.
 - `results.html` / `js/pdf-viewer.js` - shared PDF viewer page every "Generate" button opens in a new tab
   instead of downloading directly (renders the PDF with pdf.js, thumbnail rail + Print + Download, ad slots
   around the viewer). See "Adding a new worksheet tool" below.
-- `answers.html` / `js/answers-viewer.js` - decodes and displays the parent-facing answer QR code's payload
-  (see "Parent answer-key QR code" below). No IndexedDB handoff like `results.html` - everything needed to
+- `answers.html` / `js/answers-viewer.js` - decodes and displays the answer QR code's payload (see
+  "Answer-key QR code" below). No IndexedDB handoff like `results.html` - everything needed to
   render the page arrives in its own URL, since the QR is meant to be scanned on a phone with no prior visit
   to the site.
 - `assets/css/site.css` - small set of utility classes Tailwind's CDN build can't express (dashed ad placeholders,
@@ -98,11 +98,14 @@ by following the same three-step contract used by `math-ui.js`/`japanese-ui.js`:
 
 No changes to `results.html` or `js/pdf-viewer.js` are needed for a new tool.
 
-## Parent answer-key QR code
+## Answer-key QR code
 
 Every worksheet page (not the answer-key pages - they already have the answers printed) can carry a second QR
-code, bottom-left, alongside the existing homepage QR at bottom-right. Toggle: `#cfg-answerqr` on both
-math.html and japanese.html, `config.include_answer_qr`, default on.
+code, in the header right under the worksheet-matching code (top-right), alongside the existing homepage QR at
+bottom-right (which now has a small "Print more!" caption). Toggle: `#cfg-answerqr` on both math.html and
+japanese.html, `config.include_answer_qr`, default on. Deliberately placed up in the header rather than the
+bottom margin - a bottom-margin QR sits right where a student's hand rests while writing, risking a smudge that
+makes it unscannable.
 
 Since this whole site is static with no backend, the QR can't look anything up server-side - instead it encodes
 a link to `answers.html` with the answer data itself packed into the URL:
@@ -170,6 +173,6 @@ Design notes:
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=6` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=7` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 
