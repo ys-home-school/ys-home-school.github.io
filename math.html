@@ -24,17 +24,6 @@
   </nav>
 </header>
 
-<!-- Top leaderboard ad slot (AdSense unit: Leaderboard - top). -->
-<div id="ad-slot-top-leaderboard" class="w-full h-[90px] overflow-hidden max-w-6xl mx-auto mt-4">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-6130154285914649"
-       data-ad-slot="7285905093"
-       data-ad-format="horizontal"
-       data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
-
 <main class="max-w-6xl mx-auto w-full px-4 py-6 flex-1">
   <h1 class="text-2xl font-extrabold mb-1">Advanced Math Worksheet Generator</h1>
   <p class="text-sm text-stone-600 mb-4">Configure problems below, watch the live preview update, then generate a combined worksheet + answer key PDF.</p>
@@ -213,6 +202,11 @@
         Generate PDF (Worksheet + Answer Key)
       </button>
       <p id="generate-status" class="text-xs text-center mt-2 text-stone-500"></p>
+
+      <!-- Below-generate-button ad slot. Paste a narrow-format AdSense <ins>/<script> tag here once created. -->
+      <div id="ad-slot-below-generate" class="ad-slot w-full min-h-[120px] mt-4">
+        Ad Slot (below Generate button)
+      </div>
     </div>
 
     <!-- SIDEBAR AD -->
@@ -233,6 +227,17 @@
       <p class="text-[11px] text-stone-400 mb-2">This is a sample of the problems your current settings would generate, so you can check the mix of operators and difficulty before printing &mdash; it is not a mockup of the page design. The actual PDF has no colors or rounded corners: every box is a plain black rectangle on white paper.</p>
       <div class="overflow-x-auto">
         <div id="preview-grid" class="grid gap-2" style="min-width:480px"></div>
+      </div>
+
+      <!-- Below-preview ad slot (AdSense unit: Leaderboard - top, repositioned here). -->
+      <div id="ad-slot-below-preview" class="w-full h-[90px] overflow-hidden mt-4">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6130154285914649"
+             data-ad-slot="7285905093"
+             data-ad-format="horizontal"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
       </div>
     </div>
 

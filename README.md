@@ -41,23 +41,31 @@ directly via `file://` also works since there's no backend.
 The site is linked to AdSense (publisher `ca-pub-6130154285914649`, verified via the `<script>` tag in every
 page's `<head>` and `/ads.txt` at the site root).
 
-- `#ad-slot-top-leaderboard` on every page (728x90-ish leaderboard, full width) - **live**, AdSense ad unit slot
-  `7285905093`.
-- `#ad-slot-sidebar` on `math.html`, `japanese.html`, and `results.html` (300x250 rectangle, next to the control
-  panel / PDF viewer) - **live**, AdSense ad unit slot `8894500230`.
+`index.html` and `results.html` keep the original layout:
+- `#ad-slot-top-leaderboard` (728x90-ish leaderboard, full width) - **live**, AdSense ad unit slot `7285905093`.
+- `#ad-slot-sidebar` on `results.html` (300x250 rectangle, next to the PDF viewer) - **live**, AdSense ad unit
+  slot `8894500230`.
 
-Both containers cap their height (`h-[90px] overflow-hidden` / `h-[250px] overflow-hidden`) rather than letting
+`math.html` and `japanese.html` moved away from a top banner (low-attention position) to three spots nearer
+where visitors are actually looking/acting:
+- `#ad-slot-sidebar` (300x250 rectangle, next to the control panel) - **live**, ad unit slot `8894500230`.
+- `#ad-slot-below-preview` (728x90-ish, under the live problem/kana preview grid) - **live**, reuses the
+  leaderboard ad unit slot `7285905093` (repositioned here instead of the top of the page).
+- `#ad-slot-below-generate` (under the Generate button, left column) - **placeholder**, waiting on a third
+  AdSense ad unit sized for that narrower column; swap it in the same way as the others once created.
+
+All ad slot containers cap their height (`overflow-hidden` + a fixed height) rather than letting
 `data-ad-format="auto"` reserve however much space it wants - useful right after linking a new AdSense account,
 since ads may not start filling for hours to a couple weeks, and an unfilled `auto`-format slot can otherwise
 reserve a very tall blank block while waiting.
 
-Both ad slots are plain `<div>`s placed as siblings of `#controls`/`#preview` (or the PDF viewer on
+Every ad slot is a plain `<div>` placed as a sibling of `#controls`/`#preview` (or the PDF viewer on
 `results.html`) - never nested inside them - so ad content can't overlap form fields or generated worksheet
 content, however the ad network chooses to render. To wire up a new/replacement ad unit, paste its snippet in
 place of the existing `<ins>`/`<script>` pair, e.g.:
 
 ```html
-<div id="ad-slot-top-leaderboard">
+<div id="ad-slot-below-preview">
   <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXX" data-ad-slot="XXXX"></ins>
   <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
