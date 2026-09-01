@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hiragana Writing Practice - Ys Learning Lab</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6130154285914649" crossorigin="anonymous"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<link rel="icon" type="image/png" href="assets/YsSchool.png" />
+<link rel="stylesheet" href="assets/css/site.css?v=7" />
+</head>
+<body class="text-stone-800 min-h-screen flex flex-col">
+
+<header class="site-header sticky top-0 z-10">
+  <nav class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+    <a href="index.html" class="flex items-center gap-2 text-xl font-extrabold text-stone-800">
+      <img src="assets/YsSchool.png" alt="Ys Learning Lab logo" class="w-9 h-9 object-contain" /> Learning Lab
+    </a>
+    <div class="flex items-center gap-2 text-sm">
+      <a href="math.html" class="nav-key">Math</a>
+      <a href="japanese.html" class="nav-key">Japanese</a>
+    </div>
+  </nav>
+</header>
+
+<main class="max-w-6xl mx-auto w-full px-4 py-6 flex-1">
+  <h1 class="text-2xl font-extrabold mb-1">Hiragana Writing Practice</h1>
+  <p class="text-sm text-stone-600 mb-2">Trace-and-copy handwriting practice for hiragana - pick one character, a whole row (行), or all of them.</p>
+  <div class="flex items-center gap-2 text-xs mb-4">
+    <a href="japanese.html" class="nav-key">Kana Matching Quiz</a>
+    <a href="japanese-practice.html" class="nav-key nav-key-active">Writing Practice</a>
+  </div>
+
+  <div class="flex flex-col md:grid md:grid-cols-[360px_1fr_300px] gap-6 items-start">
+
+    <!-- CONTROLS -->
+    <div id="controls" class="order-1 card-soft p-4 w-full space-y-4">
+
+      <fieldset class="card-soft card-soft-gold p-3">
+        <legend class="text-sm font-bold px-1">Worksheet header</legend>
+        <label class="block text-xs mb-2">Worksheet title (printed on the sheet)
+          <input id="cfg-title" type="text" value="Hiragana Writing Practice" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 mt-1" />
+        </label>
+        <label class="block text-xs">Teacher (leave blank for a fill-in line)
+          <input id="cfg-teacher" type="text" value="" placeholder="e.g. Mrs. Smith" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 mt-1" />
+        </label>
+      </fieldset>
+
+      <fieldset class="card-soft card-soft-sage p-3">
+        <legend class="text-sm font-bold px-1">Which characters?</legend>
+        <div class="flex flex-col gap-1 mb-3">
+          <label class="flex items-center gap-2 text-xs"><input type="radio" name="cfg-mode" value="single" class="h-4 w-4" /> Single character(s)</label>
+          <label class="flex items-center gap-2 text-xs"><input type="radio" name="cfg-mode" value="row" checked class="h-4 w-4" /> By row (行) - e.g. あ行</label>
+          <label class="flex items-center gap-2 text-xs"><input type="radio" name="cfg-mode" value="all" class="h-4 w-4" /> All 46 basic hiragana</label>
+        </div>
+
+        <div id="single-panel">
+          <label class="block text-xs mb-1">Characters (comma-separated)</label>
+          <input id="cfg-single" type="text" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 text-xs" placeholder="あ, か, さ" />
+        </div>
+
+        <div id="row-panel" class="grid grid-cols-2 gap-1 hidden"></div>
+
+        <p class="text-[11px] text-stone-500 mt-2">This tool covers only the 46 basic hiragana (no dakuten/handakuten/youon) - use the Kana Matching Quiz for those.</p>
+      </fieldset>
+
+      <fieldset class="card-soft card-soft-teal p-3">
+        <legend class="text-sm font-bold px-1">Practice options</legend>
+        <label class="block text-xs mb-2">Repetitions per character
+          <input id="cfg-repeats" type="number" min="3" max="10" value="6" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
+        </label>
+        <label class="flex items-center gap-2 text-xs"><input id="cfg-words" type="checkbox" class="h-4 w-4" /> Also practice writing an example word for each character</label>
+        <p class="text-[11px] text-stone-500 mt-1 pl-6">Not every character has a natural example word (notably を and ん) - those just skip the word row.</p>
+      </fieldset>
+
+      <button id="generate-btn" class="btn-key btn-key-primary w-full py-3 text-sm">
+        Generate PDF
+      </button>
+      <p id="generate-status" class="text-xs text-center mt-2 text-stone-500"></p>
+
+      <!-- Below-generate-button ad slot (AdSense unit: Below_Generate_button). -->
+      <div id="ad-slot-below-generate" class="w-full h-[120px] overflow-hidden mt-4">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6130154285914649"
+             data-ad-slot="7199305456"
+             data-ad-format="rectangle"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+    </div>
+
+    <!-- SIDEBAR AD -->
+    <div id="ad-slot-sidebar" class="order-2 md:order-3 w-full md:w-[300px] h-[250px] overflow-hidden mx-auto">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-6130154285914649"
+           data-ad-slot="8894500230"
+           data-ad-format="rectangle"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="preview" class="order-3 md:order-2 card-soft p-4 w-full">
+      <h2 class="text-sm font-semibold text-stone-600 mb-2">What will be generated</h2>
+      <p class="text-[11px] text-stone-400 mb-2">A quick summary of your current settings - not a mockup of the page design. The actual PDF has no colors: every trace box is a plain black square on white paper.</p>
+      <div id="preview-summary" class="text-sm space-y-1"></div>
+
+      <!-- Below-preview ad slot (AdSense unit: Leaderboard - top, repositioned here). -->
+      <div id="ad-slot-below-preview" class="w-full h-[90px] overflow-hidden mt-4">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-6130154285914649"
+             data-ad-slot="7285905093"
+             data-ad-format="horizontal"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="border-t-2 border-stone-800 bg-[#eef0f3] mt-8">
+  <div class="max-w-6xl mx-auto px-4 py-6 text-center text-xs text-stone-500">
+    Ys Learning Lab worksheet generators. PDFs are generated entirely client-side in your browser.
+  </div>
+</footer>
+
+<script src="js/pdf-common.js?v=15"></script>
+<script src="js/japanese-practice-generator.js?v=15"></script>
+<script src="js/japanese-practice-ui.js?v=15"></script>
+</body>
+</html>
