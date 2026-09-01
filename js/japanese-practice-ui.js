@@ -38,10 +38,24 @@ function getMode() {
   return document.querySelector('input[name="cfg-mode"]:checked').value;
 }
 
+// Row/all mode packs every selected character onto the page edge-to-edge
+// (see the renderer's right-to-left column packing), so a whole 行 (5
+// characters) only fits on one page at a modest repeat count - single-
+// character mode has the opposite goal (fill a page with just one
+// character), hence the very different defaults.
+function applyModeDefaults(mode) {
+  document.getElementById('cfg-repeats').value = mode === 'single' ? 15 : 5;
+  const wordsCheckbox = document.getElementById('cfg-words');
+  wordsCheckbox.disabled = mode !== 'single';
+  if (mode !== 'single') wordsCheckbox.checked = false;
+  document.getElementById('words-note').classList.toggle('hidden', mode === 'single');
+}
+
 function syncModePanels() {
   const mode = getMode();
   document.getElementById('single-panel').classList.toggle('hidden', mode !== 'single');
   document.getElementById('row-panel').classList.toggle('hidden', mode !== 'row');
+  applyModeDefaults(mode);
 }
 
 function buildConfig() {
