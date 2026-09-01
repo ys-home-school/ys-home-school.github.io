@@ -103,32 +103,43 @@ class HiraganaPracticeRenderer {
     }
   }
 
+  // Column geometry shared by _blockHeight() and _drawCharBlock() - a fixed
+  // 3-box-tall column, filled top-to-bottom (vertically) before moving to
+  // the next column, matching a traditional handwriting-practice sheet
+  // rather than one long horizontal row of tiny boxes.
+  _gridGeometry() {
+    const rows = 3;
+    const cols = Math.max(1, Math.ceil(this.config.repeats / rows));
+    const gap = 10;
+    const usableWidth = PDF_PAGE.WIDTH - PDF_PAGE.MARGIN * 2;
+    const boxSize = Math.max(70, Math.min(130, (usableWidth - (cols - 1) * gap) / cols));
+    return { rows, cols, gap, boxSize };
+  }
+
   // Conservative (worst-case) estimate used only to decide when to page-break.
   _blockHeight() {
-    const boxSize = 34;
-    let h = boxSize + 8 + 10;
-    if (this.config.includeWords) h += 2 * (12 + 26 + 10);
+    const { rows, boxSize, gap } = this._gridGeometry();
+    let h = 50 + rows * (boxSize + gap);
+    if (this.config.includeWords) h += 2 * (14 + 36 + 12);
     return h;
   }
 
   _drawCharBlock(page, ch, topY) {
     const { helvetica, notoSansJP } = this.fonts;
-    const repeats = this.config.repeats;
-    const usableWidth = PDF_PAGE.WIDTH - PDF_PAGE.MARGIN * 2;
-    const modelWidth = 44;
-    const gap = 6;
-    let boxSize = (usableWidth - modelWidth - repeats * gap) / repeats;
-    boxSize = Math.max(20, Math.min(34, boxSize));
+    const { rows, cols, gap, boxSize } = this._gridGeometry();
 
-    let x = PDF_PAGE.MARGIN;
+    const modelSize = 44;
     page.drawText(ch, {
-      x, y: topY - boxSize * 0.8, size: boxSize * 0.9, font: notoSansJP, color: PDFLib.rgb(0.1, 0.1, 0.1),
+      x: PDF_PAGE.MARGIN, y: topY - modelSize * 0.8, size: modelSize, font: notoSansJP, color: PDFLib.rgb(0.1, 0.1, 0.1),
     });
-    x += modelWidth;
+    const gridTop = topY - modelSize - 14;
 
-    for (let i = 0; i < repeats; i++) {
-      const boxX = x;
-      const boxY = topY - boxSize;
+    for (let i = 0; i < this.config.repeats; i++) {
+      const col = Math.floor(i / rows);
+      const row = i % rows;
+      const boxX = PDF_PAGE.MARGIN + col * (boxSize + gap);
+      const boxY = gridTop - (row + 1) * boxSize - row * gap;
+
       drawBoxOutline(page, boxX, boxY, boxSize, boxSize, { width: 1.0 });
       const midX = boxX + boxSize / 2;
       const midY = boxY + boxSize / 2;
@@ -136,34 +147,33 @@ class HiraganaPracticeRenderer {
       drawLineSeg(page, boxX, midY, boxX + boxSize, midY, 0.5, [2, 2], dashColor);
       drawLineSeg(page, midX, boxY, midX, boxY + boxSize, 0.5, [2, 2], dashColor);
       if (i === 0) {
-        const faintSize = boxSize * 0.75;
+        const faintSize = boxSize * 0.72;
         page.drawText(ch, {
-          x: midX - faintSize * 0.45, y: boxY + boxSize * 0.15, size: faintSize, font: notoSansJP, color: PDFLib.rgb(0.82, 0.82, 0.82),
+          x: midX - faintSize * 0.45, y: boxY + boxSize * 0.16, size: faintSize, font: notoSansJP, color: PDFLib.rgb(0.82, 0.82, 0.82),
         });
       }
-      x += boxSize + gap;
     }
 
-    let y = topY - boxSize - 10;
+    let y = gridTop - rows * boxSize - (rows - 1) * gap - 16;
 
     if (this.config.includeWords && HIRAGANA_WORDS[ch]) {
       const words = HIRAGANA_WORDS[ch].slice(0, this.config.mode === 'single' ? 2 : 1);
       for (const w of words) {
         const labelStr = 'Write this word: ';
-        page.drawText(labelStr, { x: PDF_PAGE.MARGIN, y, size: 9, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
-        const labelWidth = helvetica.widthOfTextAtSize(labelStr, 9);
-        page.drawText(w, { x: PDF_PAGE.MARGIN + labelWidth, y, size: 9, font: notoSansJP, color: PDFLib.rgb(0.4, 0.4, 0.4) });
-        y -= 14;
-        const wBoxW = Math.min(200, 34 + w.length * 24);
-        const wBoxH = 28;
+        page.drawText(labelStr, { x: PDF_PAGE.MARGIN, y, size: 10, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
+        const labelWidth = helvetica.widthOfTextAtSize(labelStr, 10);
+        page.drawText(w, { x: PDF_PAGE.MARGIN + labelWidth, y, size: 10, font: notoSansJP, color: PDFLib.rgb(0.4, 0.4, 0.4) });
+        y -= 16;
+        const wBoxW = Math.min(260, 44 + w.length * 32);
+        const wBoxH = 36;
         drawBoxOutline(page, PDF_PAGE.MARGIN, y - wBoxH, wBoxW, wBoxH, { width: 1.0 });
         page.drawText(w, {
-          x: PDF_PAGE.MARGIN + 6, y: y - wBoxH + 6, size: 18, font: notoSansJP, color: PDFLib.rgb(0.82, 0.82, 0.82),
+          x: PDF_PAGE.MARGIN + 8, y: y - wBoxH + 9, size: 22, font: notoSansJP, color: PDFLib.rgb(0.82, 0.82, 0.82),
         });
-        y -= wBoxH + 10;
+        y -= wBoxH + 12;
       }
     } else {
-      y -= 6;
+      y -= 8;
     }
 
     return y;

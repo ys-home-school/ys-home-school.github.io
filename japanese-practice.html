@@ -57,8 +57,8 @@
         </div>
 
         <div id="single-panel">
-          <label class="block text-xs mb-1">Characters (comma-separated)</label>
-          <input id="cfg-single" type="text" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 text-xs" placeholder="あ, か, さ" />
+          <label class="block text-xs mb-1">Character (no Japanese keyboard needed - pick from the list)</label>
+          <select id="cfg-single" class="w-full border-2 border-stone-300 rounded-lg px-2 py-1 text-sm bg-white"></select>
         </div>
 
         <div id="row-panel" class="grid grid-cols-2 gap-1 hidden"></div>
@@ -69,8 +69,9 @@
       <fieldset class="card-soft card-soft-teal p-3">
         <legend class="text-sm font-bold px-1">Practice options</legend>
         <label class="block text-xs mb-2">Repetitions per character
-          <input id="cfg-repeats" type="number" min="3" max="10" value="6" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
+          <input id="cfg-repeats" type="number" min="3" max="30" value="15" class="w-16 border-2 border-stone-300 rounded-lg px-2 py-1 ml-1" />
         </label>
+        <p class="text-[11px] text-stone-500 mb-2 pl-0">Defaults to 15 - enough to fill a page for one character without wasting paper on a mostly-blank sheet.</p>
         <label class="flex items-center gap-2 text-xs"><input id="cfg-words" type="checkbox" class="h-4 w-4" /> Also practice writing an example word for each character</label>
         <p class="text-[11px] text-stone-500 mt-1 pl-6">Not every character has a natural example word (notably を and ん) - those just skip the word row.</p>
       </fieldset>
@@ -130,8 +131,8 @@
   </div>
 </footer>
 
-<script src="js/pdf-common.js?v=15"></script>
-<script src="js/japanese-practice-generator.js?v=15"></script>
-<script src="js/japanese-practice-ui.js?v=15"></script>
+<script src="js/pdf-common.js?v=16"></script>
+<script src="js/japanese-practice-generator.js?v=16"></script>
+<script src="js/japanese-practice-ui.js?v=16"></script>
 </body>
 </html>

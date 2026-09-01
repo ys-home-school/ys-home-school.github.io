@@ -11,6 +11,29 @@ function buildRowCheckboxes() {
   `).join('');
 }
 
+// Romaji reading per character, gojuon order (matches HIRAGANA_ROWS exactly)
+// - shown alongside each dropdown option purely so a parent/teacher can find
+// the right character without needing to read hiragana themselves.
+const HIRAGANA_ROMAJI = {
+  'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+  'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+  'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+  'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+  'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+  'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+  'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+  'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+  'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+  'わ': 'wa', 'を': 'wo', 'ん': 'n',
+};
+
+function buildSingleSelect() {
+  const select = document.getElementById('cfg-single');
+  select.innerHTML = HIRAGANA_ROWS.flatMap((r) => r.chars).map((c) => `
+    <option value="${c}">${c} (${HIRAGANA_ROMAJI[c] || '?'})</option>
+  `).join('');
+}
+
 function getMode() {
   return document.querySelector('input[name="cfg-mode"]:checked').value;
 }
@@ -21,20 +44,12 @@ function syncModePanels() {
   document.getElementById('row-panel').classList.toggle('hidden', mode !== 'row');
 }
 
-// Parses the comma-separated single-character input against the known
-// hiragana set (any row's chars), ignoring blanks and anything not in that
-// set (silently, since a typo'd kanji/katakana/romaji entry has no sane
-// "closest match" to fall back to).
-function parseSingleChars(raw) {
-  const allChars = new Set(HIRAGANA_ROWS.flatMap((r) => r.chars));
-  return raw.split(',').map((c) => c.trim()).filter((c) => allChars.has(c));
-}
-
 function buildConfig() {
   const mode = getMode();
   const selectedRows = Array.from(document.querySelectorAll('.row-check:checked')).map((el) => el.value);
-  const singleChars = parseSingleChars(document.getElementById('cfg-single').value);
-  const repeats = Math.max(3, Math.min(10, parseInt(document.getElementById('cfg-repeats').value, 10) || 6));
+  const singleValue = document.getElementById('cfg-single').value;
+  const singleChars = singleValue ? [singleValue] : [];
+  const repeats = Math.max(3, Math.min(30, parseInt(document.getElementById('cfg-repeats').value, 10) || 15));
   const includeWords = document.getElementById('cfg-words').checked;
   const title = document.getElementById('cfg-title').value;
   const teacher = document.getElementById('cfg-teacher').value;
@@ -91,6 +106,7 @@ async function handleGenerate() {
 
 document.addEventListener('DOMContentLoaded', () => {
   buildRowCheckboxes();
+  buildSingleSelect();
   syncModePanels();
   updatePreviewSummary();
 

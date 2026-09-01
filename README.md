@@ -12,10 +12,15 @@ ad script you add yourself.
 - `japanese.html` / `js/japanese-generator.js` / `js/japanese-ui.js` - port of `source/Hiragana Katakana Test Maker.py`
   (the katakana<->hiragana matching quiz)
 - `japanese-practice.html` / `js/japanese-practice-generator.js` / `js/japanese-practice-ui.js` - a separate,
-  not-ported-from-Python tool: hiragana handwriting/tracing practice (single character, a whole row/行, or all
-  46 basic hiragana, with N trace-copy boxes per character and an optional example-word writing line). No
-  answer key / QR / matching-code concept here - tracing has nothing to "check". Cross-linked with japanese.html
-  via a small sub-nav row under each page's `<h1>`.
+  not-ported-from-Python tool: hiragana handwriting/tracing practice (single character - via a dropdown, not a
+  text field, since typing Japanese isn't a given on every device - a whole row/行, or all 46 basic hiragana).
+  No stroke-order arrows (accurately sourcing stroke-path data for 46+ characters wasn't worth the risk of
+  silently-wrong data) and no answer key / QR / matching-code concept - tracing has nothing to "check". Each
+  character gets a large 5-column x 3-row grid of trace-copy boxes (filled top-to-bottom per column, i.e.
+  vertically, before moving to the next column - `_gridGeometry()` in the generator), sized to the page rather
+  than kept small, plus an optional example-word writing line. Repetitions default to 15 - enough to fill one
+  page per character without leaving it mostly blank. Cross-linked with japanese.html via a small sub-nav row
+  under each page's `<h1>`.
 - `js/pdf-common.js` - shared page geometry constants, font loading, drawing helpers, download trigger
 - `assets/fonts/NotoSansJP-Regular.ttf` - embedded Japanese font: a `fonttools pyftsubset` build of Noto Sans JP
   covering every ASCII + kana/kanji character this app's Japanese strings actually use (~250 glyphs, ~190KB).
@@ -224,6 +229,6 @@ would break, and which never spells anything problematic in that order anyway.
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=15` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=16` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 
