@@ -74,8 +74,12 @@ class HiraganaPracticeRenderer {
     // otherwise lands within fractions of a point of usableWidth - never
     // trips the page-break check below on floating-point rounding alone.
     const boxSize = Math.floor(Math.max(40, Math.min(130, (usableWidth - 4 * GAP) / 5)));
-    const gridTop = (PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT) - 50;
-    const modelY = gridTop + 16;
+    // The model reference character gets its own full box-sized row at the
+    // top of each character's first column - sized and centered exactly
+    // like the trace boxes below it, not a small aside label - so reserve
+    // one more box height for it.
+    const modelBoxY = (PDF_PAGE.HEIGHT - PDF_PAGE.HEADER_HEIGHT) - boxSize;
+    const gridTop = modelBoxY - GAP;
 
     let page = pdfDoc.addPage([PDF_PAGE.WIDTH, PDF_PAGE.HEIGHT]);
     this._drawHeader(page);
@@ -93,8 +97,8 @@ class HiraganaPracticeRenderer {
         }
         const colX = colRightX - boxSize;
         if (c === 0) {
-          const { notoSansJP } = this.fonts;
-          page.drawText(ch, { x: colX, y: modelY, size: 26, font: notoSansJP, color: PDFLib.rgb(0.1, 0.1, 0.1) });
+          drawBoxOutline(page, colX, modelBoxY, boxSize, boxSize, { width: 1.0 });
+          this._drawCenteredJp(page, ch, colX + boxSize / 2, modelBoxY + boxSize / 2, boxSize * 0.8, PDFLib.rgb(0.1, 0.1, 0.1));
         }
         const startIdx = c * ROWS;
         const boxesInCol = Math.min(ROWS, this.config.repeats - startIdx);
@@ -109,50 +113,72 @@ class HiraganaPracticeRenderer {
       // mode, where at most 3 of the ~5 columns a page can hold are used) -
       // a whole gyou/行 already fills the page edge-to-edge with boxes.
       if (this.config.includeWords && this.config.mode === 'single' && HIRAGANA_WORDS[ch]) {
-        this._drawWordsBesideGrid(page, ch, colRightX, gridTop, ROWS, boxSize, GAP);
+        this._drawWordColumns(page, ch, colRightX, gridTop, boxSize, GAP);
       }
     }
 
     return pdfDoc.save();
   }
 
-  _drawTraceBox(page, ch, boxX, boxY, boxSize, isVeryFirstBox) {
+  // Centers CJK text both horizontally and vertically on (cx, cy) - full-
+  // width glyphs in Noto Sans JP sit slightly above the geometric baseline
+  // center, hence the small downward nudge past a naive size/2 offset.
+  _drawCenteredJp(page, text, cx, cy, size, color) {
     const { notoSansJP } = this.fonts;
+    const width = notoSansJP.widthOfTextAtSize(text, size);
+    page.drawText(text, { x: cx - width / 2, y: cy - size * 0.36, size, font: notoSansJP, color });
+  }
+
+  _drawTraceBox(page, ch, boxX, boxY, boxSize, showHint) {
     drawBoxOutline(page, boxX, boxY, boxSize, boxSize, { width: 1.0 });
     const midX = boxX + boxSize / 2;
     const midY = boxY + boxSize / 2;
     const dashColor = PDFLib.rgb(0.65, 0.65, 0.65);
     drawLineSeg(page, boxX, midY, boxX + boxSize, midY, 0.5, [2, 2], dashColor);
     drawLineSeg(page, midX, boxY, midX, boxY + boxSize, 0.5, [2, 2], dashColor);
-    if (isVeryFirstBox) {
-      const faintSize = boxSize * 0.72;
-      page.drawText(ch, {
-        x: midX - faintSize * 0.45, y: boxY + boxSize * 0.16, size: faintSize, font: notoSansJP, color: PDFLib.rgb(0.82, 0.82, 0.82),
-      });
+    if (showHint) {
+      this._drawCenteredJp(page, ch, midX, midY, boxSize * 0.82, PDFLib.rgb(0.8, 0.8, 0.8));
     }
   }
 
+  // Same box-and-crosshair rule as the main practice grid (not a single
+  // wide box with the whole word squeezed into it as plain text) - each
+  // character of the word gets its own box-sized cell, stacked top-to-
+  // bottom in one column, just like every other trace column on the page.
   // Uses whatever horizontal room is left to the left of this character's
-  // column(s) - single-character mode only ever fills part of a page's
-  // width, so there's real space here rather than needing to steal any of
-  // the grid's own vertical budget.
-  _drawWordsBesideGrid(page, ch, availRightX, gridTop, rows, boxSize, gap) {
-    const { helvetica, notoSansJP } = this.fonts;
-    let y = gridTop - 4;
+  // main column(s) - single-character mode only ever fills part of a
+  // page's width, so there's real space here.
+  _drawWordColumns(page, ch, availRightX, gridTop, mainBoxSize, gap) {
+    const { helvetica } = this.fonts;
     const words = HIRAGANA_WORDS[ch].slice(0, 2);
+
+    // Shrink the word boxes (never below a legible floor) rather than
+    // silently dropping the second word - single-character mode's leftover
+    // width is enough for two columns, just not always at the main grid's
+    // full box size.
+    const initialOffset = gap * 2;
+    const availWidth = availRightX - PDF_PAGE.MARGIN - initialOffset;
+    const neededForBoth = words.length * mainBoxSize + (words.length - 1) * gap;
+    const boxSize = words.length > 1 && availWidth < neededForBoth
+      ? Math.max(40, Math.floor((availWidth - gap) / 2))
+      : mainBoxSize;
+
+    let colRight = availRightX - initialOffset;
+
     for (const w of words) {
-      const labelStr = 'Write this word: ';
-      page.drawText(labelStr, { x: PDF_PAGE.MARGIN, y, size: 10, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
-      const labelWidth = helvetica.widthOfTextAtSize(labelStr, 10);
-      page.drawText(w, { x: PDF_PAGE.MARGIN + labelWidth, y, size: 10, font: notoSansJP, color: PDFLib.rgb(0.4, 0.4, 0.4) });
-      y -= 16;
-      const wBoxW = Math.min(availRightX - PDF_PAGE.MARGIN - gap, 44 + w.length * 32);
-      const wBoxH = 36;
-      if (wBoxW > 44) {
-        drawBoxOutline(page, PDF_PAGE.MARGIN, y - wBoxH, wBoxW, wBoxH, { width: 1.0 });
-        page.drawText(w, { x: PDF_PAGE.MARGIN + 8, y: y - wBoxH + 9, size: 22, font: notoSansJP, color: PDFLib.rgb(0.82, 0.82, 0.82) });
+      const chars = Array.from(w);
+      const colX = colRight - boxSize;
+      if (colX < PDF_PAGE.MARGIN) break; // not enough room left - skip rather than overlap the main grid
+
+      const labelStr = 'Write this word:';
+      const labelWidth = helvetica.widthOfTextAtSize(labelStr, 9);
+      page.drawText(labelStr, { x: colX + boxSize / 2 - labelWidth / 2, y: gridTop + 10, size: 9, font: helvetica, color: PDFLib.rgb(0.4, 0.4, 0.4) });
+
+      for (let i = 0; i < chars.length; i++) {
+        const boxY = gridTop - (i + 1) * boxSize - i * gap;
+        this._drawTraceBox(page, chars[i], colX, boxY, boxSize, true);
       }
-      y -= wBoxH + 12;
+      colRight = colX - gap;
     }
   }
 

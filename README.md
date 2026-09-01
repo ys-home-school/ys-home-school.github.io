@@ -21,7 +21,13 @@ ad script you add yourself.
   generator starts at the right margin and decreases) - a whole 行 (5 characters) at the default 5 repetitions
   each fills exactly one page edge-to-edge, one column per character, in their natural reading order. Single-
   character mode defaults to 15 repetitions instead (3 columns), using the leftover width for an optional
-  example-word writing line - row/all mode has no such leftover space, so that option is disabled there.
+  example-word writing line - row/all mode has no such leftover space, so that option is disabled there. The
+  model reference character at the top of each character's first column is a full box-sized cell (not a small
+  aside label) and, like every faint trace-hint inside the boxes below it, is centered on the box with
+  `_drawCenteredJp()` - measuring the actual glyph width via `font.widthOfTextAtSize()` rather than a hand-
+  guessed offset. Example words reuse that exact same box-and-crosshair rule too: each character of the word
+  gets its own box-sized cell in a vertical column (shrunk together, never dropped, if both words don't fit the
+  leftover width at full size), not one word squeezed as plain text into a single wide box.
   Cross-linked with japanese.html via a small sub-nav row under each page's `<h1>`.
 - `js/pdf-common.js` - shared page geometry constants, font loading, drawing helpers, download trigger
 - `assets/fonts/NotoSansJP-Regular.ttf` - embedded Japanese font: a `fonttools pyftsubset` build of Noto Sans JP
@@ -231,6 +237,6 @@ would break, and which never spells anything problematic in that order anyway.
 Every `<script src="js/...">` and the `site.css` link carries a `?v=N` query param. **Bump it whenever you edit
 that file** - browsers cache these aggressively with no other cache-control here, and without bumping the
 version, visitors (and you, testing) can silently keep running old JS/CSS after a deploy. Cache-busting is
-per-file-type, not global: all `js/*.js` references share one number (`?v=17` currently), `site.css` has its own
+per-file-type, not global: all `js/*.js` references share one number (`?v=18` currently), `site.css` has its own
 (`?v=7` currently) - bump whichever group you actually touched.
 
